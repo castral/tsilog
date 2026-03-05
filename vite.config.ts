@@ -7,27 +7,27 @@ export default defineConfig({
     viteTsConfigPaths({
       projects: [
         './tsconfig.json',
-        './tsconfig.spec.json',
       ],
     }),
   ],
 
   build: {
+    emptyOutDir: false,
     outDir: 'dist',
     target: 'es2022',
     sourcemap: true,
     lib: {
-      entry: './lib/index.ts',
+      entry: './lib/tsilog.ts',
       formats: ['es'],
-      fileName: () => 'index.mjs',
+      fileName: () => 'tsilog.js',
     },
     rollupOptions: {
       output: {
         esModule: true,
         format: 'esm',
-        sourcemap: 'inline',
         strict: true,
       },
+      treeshake: 'recommended',
     },
   },
 

@@ -1,6 +1,6 @@
-import { type Facade, LevelCode, LevelName, type LogCall } from './logger.js';
-import { chain, type Mapper } from './mapper.js';
-import { Transporter } from './transporter.js';
+import { type Facade, LevelCode, LevelName, type LogCall } from './facade.ts';
+import { chain, type Mapper } from './mapper/mapper.ts';
+import { Transporter } from './transporter/transporter.ts';
 
 export function tsilog<Log = Record<string, unknown>>(
   userMapper: Mapper<Log[], Log[]> | undefined,
@@ -18,13 +18,13 @@ export function tsilog<Log = Record<string, unknown>>(
     Object.values(LevelName).map((levelName) =>
       [
         levelName,
-        (level: LevelCode | LevelName, ...args: unknown[]) => log(level, ...args),
+        (...args: unknown[]) => log(levelName, ...args),
       ],
     ),
   ) as Record<LevelName, LogCall>;
 
   const log = (level: LevelCode | LevelName, ...args: unknown[]) => {
-    const logs = mapper([level, ...args]);
+    const logs = mapper(level, ...args);
     for (const transporter of transporters) {
       transporter.transport(logs);
     }

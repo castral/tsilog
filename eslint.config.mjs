@@ -111,8 +111,8 @@ export default defineConfig([
           checkTypeImports: true,
           fix: true,
           pattern: {
-            js: 'always',
-            ts: 'never',
+            js: 'never',
+            ts: 'always',
             tsx: 'never',
           },
         },

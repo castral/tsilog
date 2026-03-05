@@ -30,9 +30,10 @@
   "sideEffects": false,
   "type": "module",
   "exports": {
-    ".": "./index.js"
+    ".": "./dist/tsilog.js"
   },
-  "main": "index.js",
+  "main": "./dist/tsilog.js",
+  "types": "./dist/tsilog.d.ts",
   "files": [
     "dist"
   ],
@@ -42,11 +43,11 @@
     "chk:typecheck": "tsc --noEmit --project tsconfig.json",
     "pub:jsr": "tbd",
     "pub:npm": "tbd",
-    "tsi:build": "pnpm run chk:typecheck && vite build",
+    "tsi:build": "tsc --build --verbose && vite build",
     "tsi:clean": "rimraf -v dist node_modules coverage .eslintcache",
     "tsi:package": "pnpm run tsi:verify && vite build",
     "tsi:release": "pnpm run tsi:package && pnpm run \"^pub:.+\"",
-    "tsi:test": "tsc --noEmit --project tsconfig.spec.json && vitest --pool=threads --run",
+    "tsi:test": "tsc --project tsconfig.spec.json && vitest --pool=threads --run",
     "tsi:verify": "pnpm run \"^chk:.+\""
   },
   "devDependencies": {

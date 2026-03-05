@@ -1,0 +1,67 @@
+{
+  "name": "tsilog",
+  "version": "1.0.0",
+  "description": "Tasty logging for tasty TypeScript projects. Pronounced 'see-log'",
+  "keywords": [
+    "consola",
+    "console",
+    "debug",
+    "debugger",
+    "debugging",
+    "log",
+    "logger",
+    "logging",
+    "tslog",
+    "tsilog",
+    "typescript"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/castral/tsilog.git"
+  },
+  "license": "MIT",
+  "author": "Ryan Brignoni",
+  "sideEffects": false,
+  "type": "module",
+  "exports": {
+    ".": "./index.js"
+  },
+  "main": "index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "chk:cov": "vitest run --coverage",
+    "chk:lint": "eslint . --cache --concurrency=off",
+    "chk:test": "tsc --noEmit --project tsconfig.spec.json && vitest run",
+    "chk:type": "tsc --noEmit --project tsconfig.json",
+    "tsi:build": "tsc -b tsconfig.json",
+    "tsi:clean": "rimraf -v dist node_modules"
+  },
+  "devDependencies": {
+    "@stylistic/eslint-plugin": "5.8.0",
+    "@types/node": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "eslint": "9.39.3",
+    "eslint-import-resolver-typescript": "4.4.4",
+    "eslint-plugin-import-x": "4.16.1",
+    "eslint-plugin-n": "17.24.0",
+    "eslint-plugin-package-json": "0.89.3",
+    "eslint-plugin-perfectionist": "5.5.0",
+    "eslint-plugin-regexp": "3.0.0",
+    "eslint-plugin-unicorn": "63.0.0",
+    "globals": "17.4.0",
+    "husky": "9.1.7",
+    "jsonc-eslint-parser": "3.1.0",
+    "rimraf": "catalog:",
+    "typescript": "catalog:",
+    "typescript-eslint": "8.56.2-alpha.1",
+    "vite": "catalog:",
+    "vite-tsconfig-paths": "6.1.1",
+    "vitest": "catalog:"
+  },
+  "packageManager": "pnpm@10.30.3+sha512.c961d1e0a2d8e354ecaa5166b822516668b7f44cb5bd95122d590dd81922f606f5473b6d23ec4a5be05e7fcd18e8488d47d978bbe981872f1145d06e9a740017",
+  "engines": {
+    "node": "^24.0.0"
+  }
+}

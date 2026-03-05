@@ -1,0 +1,17 @@
+{
+  "$schema": "https://jsr.io/schema/config-file.v1.json",
+  "name": "@castral/tsilog",
+  "version": "1.0.0",
+  "license": "MIT",
+  "exports": "./lib/index.ts",
+  "publish": {
+    "include": [
+      "lib/**/*.ts",
+      "LICENSE",
+      "README.md"
+    ],
+    "exclude": [
+      "spec/**/*"
+    ]
+  }
+}

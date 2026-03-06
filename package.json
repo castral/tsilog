@@ -50,6 +50,9 @@
     "tsi:test": "tsc --project tsconfig.spec.json && vitest --pool=threads --run",
     "tsi:verify": "pnpm run \"^chk:.+\""
   },
+  "dependencies": {
+    "@castral/ts-enum": "1.0.1"
+  },
   "devDependencies": {
     "@stylistic/eslint-plugin": "5.8.0",
     "@types/node": "catalog:",

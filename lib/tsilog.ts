@@ -1,5 +1,6 @@
 import { type Facade, LevelCode, LevelName, type LogCall } from './facade.ts';
 import { chain, type Mapper } from './mapper/mapper.ts';
+import { environment } from './support/env.support.ts';
 import { Transporter } from './transporter/transporter.ts';
 
 export function tsilog<Log = Record<string, unknown>>(
@@ -24,6 +25,10 @@ export function tsilog<Log = Record<string, unknown>>(
   ) as Record<LevelName, LogCall>;
 
   const log = (level: LevelCode | LevelName, ...args: unknown[]) => {
+    if (!environment.isEnabled) {
+      return logger;
+    }
+
     const logs = mapper(level, ...args);
     for (const transporter of transporters) {
       transporter.transport(logs);

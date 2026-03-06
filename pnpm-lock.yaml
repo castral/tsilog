@@ -16,6 +16,10 @@ catalogs:
 importers:
 
   .:
+    dependencies:
+      '@castral/ts-enum':
+        specifier: 1.0.1
+        version: 1.0.1
     devDependencies:
       '@stylistic/eslint-plugin':
         specifier: 5.8.0
@@ -104,6 +108,9 @@ packages:
   '@bcoe/v8-coverage@1.0.2':
     resolution: {integrity: sha512-6zABk/ECA/QYSCQ1NGiVwwbQerUCZ+TQbp64Q3AgmfNvurHH0j8TtXa1qbShXA6qqkpAj4V5W8pP6mLe1mcMqA==}
     engines: {node: '>=18'}
+
+  '@castral/ts-enum@1.0.1':
+    resolution: {integrity: sha512-pGIzdTFE2F9n69lRWKLy5ItH2+tmODAGMMVKj0mJ/wYDIz7+AE8oPGpUG6Z6rQTbF49TR83eCyGaaOEpq6WF1Q==}
 
   '@emnapi/core@1.8.1':
     resolution: {integrity: sha512-AvT9QFpxK0Zd8J0jopedNm+w/2fIzvtPKPjqyw9jwvBaReTTqPBk9Hixaz7KbjimP+QNz605/XnjFcDAL2pqBg==}
@@ -1651,6 +1658,8 @@ snapshots:
       '@babel/helper-validator-identifier': 7.28.5
 
   '@bcoe/v8-coverage@1.0.2': {}
+
+  '@castral/ts-enum@1.0.1': {}
 
   '@emnapi/core@1.8.1':
     dependencies:

@@ -45,6 +45,7 @@
     "chk:coverage": "vitest --run --coverage.enabled=false --pool=threads",
     "chk:lint": "eslint . --cache --concurrency=off",
     "chk:typecheck": "tsc --noEmit --project tsconfig.json",
+    "prepare": "sh -c 'if [ \"$CI\" != \"true\" ]; then husky; fi'",
     "pub:jsr": "tbd",
     "pub:npm": "tbd",
     "tsi:build": "tsc --build --verbose && vite build",

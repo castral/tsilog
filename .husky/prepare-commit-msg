@@ -1,0 +1,5 @@
+# Delegate to local (non-committed) prepare-commit-msg hook if it exists
+# This supports IDE plugins (e.g., Darkyen Time Tracker) that install hooks into .git/hooks/
+if [ -x .git/hooks/prepare-commit-msg ]; then
+  .git/hooks/prepare-commit-msg "$@"
+fi

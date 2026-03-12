@@ -17,9 +17,9 @@ These are type-system correctness issues that should be fixed before the archite
 The current type means `logger.info("hello")` types `"hello"` as a level parameter. The `as Record<LevelName, LogCall>` cast in the factory hides this mismatch.
 
 **Action:**
-- [ ] Change `LogCall` to `(...args: unknown[]) => Facade`
-- [ ] Add a separate internal type (e.g., `InternalLogCall`) for the `log()` function that includes the level parameter
-- [ ] Remove the `as` cast in `lib/tsilog.ts:25`
+- [x] Change `LogCall` to `(...args: unknown[]) => Facade`
+- [ ] ~~Add a separate internal type (e.g., `InternalLogCall`) for the `log()` function that includes the level parameter~~
+- [ ] ~~Remove the `as` cast in `lib/tsilog.ts:25`~~
 
 ### T-2: Fix Mapper arity mismatch
 
@@ -28,9 +28,9 @@ The current type means `logger.info("hello")` types `"hello"` as a level paramet
 `Mapper<T, R>` takes one argument `(input: T): R`, but the input mapper is variadic `(..._args: unknown[]): Log[]` and is called with multiple arguments `mapper(level, ...args)`. Extra arguments are silently dropped at runtime.
 
 **Options (pick one):**
-- [ ] **(a) Separate `InputMapper` type** — create a distinct type for the pipeline entry point that accepts variadic args and outputs `Log[]`. Keep `Mapper` as the intra-pipeline type. *(Recommended — the entry point is fundamentally different from mid-chain transforms.)*
-- [ ] **(b) Pack args before pipeline** — have the call site wrap `(level, ...args)` into a single object/tuple before entering the mapper chain
-- [ ] **(c) Variadic Mapper** — make `Mapper` accommodate variadic input at the head of the chain
+- [x] **(a) Separate `InputMapper` type** — create a distinct type for the pipeline entry point that accepts variadic args and outputs `Log[]`. Keep `Mapper` as the intra-pipeline type. *(Recommended — the entry point is fundamentally different from mid-chain transforms.)*
+- [x] **(b) Pack args before pipeline** — have the call site wrap `(level, ...args)` into a single object/tuple before entering the mapper chain
+- [ ] ~~**(c) Variadic Mapper** — make `Mapper` accommodate variadic input at the head of the chain~~
 
 ### T-3: Fix `chain()` identity overload
 
@@ -39,7 +39,7 @@ The current type means `logger.info("hello")` types `"hello"` as a level paramet
 `chain<T>(v: T): T` is unconstrained — `chain("hello")` compiles but is nonsensical.
 
 **Action:**
-- [ ] Either remove the identity overload, or constrain it to `chain<T, R>(mapper: Mapper<T, R>): Mapper<T, R>`
+- [x] Either remove the identity overload, or constrain it to `chain<T, R>(mapper: Mapper<T, R>): Mapper<T, R>`
 
 ---
 
@@ -52,9 +52,9 @@ The current type means `logger.info("hello")` types `"hello"` as a level paramet
 `Configuration` defines `name`, `levelCutoff`, `mapper`, `additionalMapper`, `transporters` — but `tsilog()` takes raw `(userMapper, transporters)`. The Configuration type is disconnected.
 
 **Action:**
-- [ ] Decide whether the factory should accept a `Configuration` object directly
-- [ ] Align the `mapper`/`additionalMapper` distinction in Configuration with how the factory actually chains mappers
-- [ ] Wire `name` into the logger (e.g., as metadata in log entries)
+- [x] Decide whether the factory should accept a `Configuration` object directly
+- [ ] ~~Align the `mapper`/`additionalMapper` distinction in Configuration with how the factory actually chains mappers~~
+- [x] Wire `name` into the logger (e.g., as metadata in log entries)
 
 ### T-5: Implement level filtering
 
@@ -63,9 +63,9 @@ The current type means `logger.info("hello")` types `"hello"` as a level paramet
 `levelCutoff` exists in the Configuration type but has no implementation anywhere. Level filtering is the most important feature of a logging library.
 
 **Decision needed — where should filtering live?**
-- [ ] **Factory-level gate** *(recommended)* — `log()` compares level against cutoff and returns early before entering the pipeline. Simplest approach, used by pino/winston.
-- [ ] **Per-transporter override** *(optional addition)* — allow individual transporters to define their own cutoff (e.g., console gets debug+, file gets warn+). Requires level metadata to survive through the pipeline.
-- [ ] **Mapper-based** *(not recommended)* — a mapper that filters by level. Overloads the mapper concept — filtering is a gate, not a transform.
+- [x] **Factory-level gate** *(recommended)* — `log()` compares level against cutoff and returns early before entering the pipeline. Simplest approach, used by pino/winston.
+- [ ] ~~**Per-transporter override** *(optional addition)* — allow individual transporters to define their own cutoff (e.g., console gets debug+, file gets warn+). Requires level metadata to survive through the pipeline.~~
+- [ ] ~~**Mapper-based** *(not recommended)* — a mapper that filters by level. Overloads the mapper concept — filtering is a gate, not a transform.~~
 
 ---
 
@@ -80,9 +80,9 @@ These should be decided before implementing concrete transporters/reporters/form
 `Reporter<Out>` returns `void`, `Transporter.transport()` returns `void`. The planned `fetch.transporter` and `file.transporter` need async.
 
 **Options (pick one):**
-- [ ] **(a) Sync-only, internal queues** — keep interfaces synchronous. Async transporters manage their own internal buffering/queuing. This is pino's approach — simplest API, pushes complexity to implementors.
-- [ ] **(b) `void | Promise<void>`** — make reporter/transporter return types async-compatible. Complicates the `for...of` loop in the factory (needs `await` or promise collection).
-- [ ] **(c) Separate base classes** — `SyncTransporter` and `AsyncTransporter`. More types, but clear intent.
+- [ ] ~~**(a) Sync-only, internal queues** — keep interfaces synchronous. Async transporters manage their own internal buffering/queuing. This is pino's approach — simplest API, pushes complexity to implementors.~~
+- [x] **(b) `void | Promise<void>`** — make reporter/transporter return types async-compatible. Complicates the `for...of` loop in the factory (needs `await` or promise collection).
+- [ ] ~~**(c) Separate base classes** — `SyncTransporter` and `AsyncTransporter`. More types, but clear intent.~~
 
 ### T-7: Define a structured base Log type
 
@@ -91,9 +91,8 @@ These should be decided before implementing concrete transporters/reporters/form
 `Log = Record<string, unknown>` gives no compile-time guarantee that entries carry level, timestamp, or message.
 
 **Action:**
-- [ ] Define a minimal `BaseLog` interface with required fields (`level`, `timestamp`, `message`)
-- [ ] Constrain the generic: `Log extends BaseLog = BaseLog`
-- [ ] This gives formatters and reporters concrete fields to rely on
+- [x] Define a minimal `BaseLog` interface with required fields (`level`, `timestamp`, `message`)
+- [ ] ~~Constrain the generic: `Log extends BaseLog = BaseLog`~~
 
 ### T-8: Consider single-item vs batch-oriented core
 
@@ -102,8 +101,8 @@ These should be decided before implementing concrete transporters/reporters/form
 Formatter is `(input: In[]): Out[]`, Reporter is `(output: Out[]): void`. Single log calls wrap one item in an array.
 
 **Action:**
-- [ ] Decide if batching/buffering is a first-class feature (if yes, keep array-oriented)
-- [ ] If not, consider single-item core interface with optional batch wrapper
+- [x] Decide if batching/buffering is a first-class feature (if yes, keep array-oriented)
+- [ ] ~~If not, consider single-item core interface with optional batch wrapper~~
 
 ---
 
@@ -128,8 +127,8 @@ No mechanism for `logger.child({ requestId: "abc" })`. Very common pattern for r
 All logger instances share the global `environment` singleton. Can't enable/disable individual instances. Testing is harder.
 
 **Action:**
-- [ ] Allow per-instance environment/config overrides with global as default fallback
-- [ ] Consider making `EnvironmentLoader` injectable for testing
+- [x] Allow per-instance environment/config overrides with global as default fallback
+- [x] Consider making `EnvironmentLoader` injectable for testing
 
 ---
 
@@ -146,4 +145,4 @@ globalThis.navigator.userAgent.includes('Cloudflare-Workers')
 `globalThis.navigator` is `undefined` in Node.js (especially older versions). This will throw at runtime.
 
 **Fix:**
-- [ ] Add optional chaining: `globalThis.navigator?.userAgent?.includes('Cloudflare-Workers') ?? false`
+- [x] Add optional chaining: `globalThis.navigator?.userAgent?.includes('Cloudflare-Workers') ?? false`

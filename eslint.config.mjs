@@ -143,10 +143,17 @@ export default defineConfig([
         },
       ],
       'perfectionist/sort-union-types': ['error', {
-        'groups': [
+        groups: [
           'unknown',
           'nullish',
+          'async',
         ],
+        customGroups: [
+          {
+            groupName: 'async',
+            elementNamePattern: 'Promise',
+          }
+        ]
       }],
 
       '@stylistic/array-bracket-spacing': 'error',

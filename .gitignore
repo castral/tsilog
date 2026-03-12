@@ -1,5 +1,8 @@
+/.claude/
 /.idea/
+/coverage/
 /dist/
 /node_modules/
+/types/
 
 .eslintcache

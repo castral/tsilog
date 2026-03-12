@@ -30,30 +30,35 @@
   "sideEffects": false,
   "type": "module",
   "exports": {
-    ".": "./dist/tsilog.js"
+    ".": {
+      "import": "./dist/tsilog.js",
+      "types": "./dist/tsilog.d.ts"
+    }
   },
-  "main": "./dist/tsilog.js",
-  "types": "./dist/tsilog.d.ts",
   "files": [
-    "dist"
+    "./dist/tsilog.js",
+    "./dist/tsilog.js.map",
+    "./dist/tsilog.d.ts",
+    "./dist/tsilog.d.ts.map"
   ],
   "scripts": {
-    "chk:coverage": "vitest --run --coverage --pool=threads",
+    "chk:coverage": "vitest --run --coverage.enabled=false --pool=threads",
     "chk:lint": "eslint . --cache --concurrency=off",
     "chk:typecheck": "tsc --noEmit --project tsconfig.json",
     "pub:jsr": "tbd",
     "pub:npm": "tbd",
     "tsi:build": "tsc --build --verbose && vite build",
-    "tsi:clean": "rimraf -v dist node_modules coverage .eslintcache",
+    "tsi:clean": "rimraf -v dist node_modules coverage .eslintcache types && pnpm install",
     "tsi:package": "pnpm run tsi:verify && vite build",
-    "tsi:release": "pnpm run tsi:package && pnpm run \"^pub:.+\"",
-    "tsi:test": "tsc --project tsconfig.spec.json && vitest --pool=threads --run",
-    "tsi:verify": "pnpm run \"^chk:.+\""
+    "tsi:release": "pnpm run tsi:package && pnpm run '/^pub:.+/'",
+    "tsi:test": "tsc --project tsconfig.spec.json && vitest --pool=threads --run --coverage.enabled=false",
+    "tsi:verify": "pnpm run '/^chk:.+/'"
   },
   "dependencies": {
-    "@castral/ts-enum": "1.0.1"
+    "@castral/ts-enum": "1.1.0"
   },
   "devDependencies": {
+    "@microsoft/api-extractor": "7.57.7",
     "@stylistic/eslint-plugin": "5.8.0",
     "@types/node": "catalog:",
     "@vitest/coverage-v8": "4.1.0-beta.5",
@@ -71,13 +76,14 @@
     "rimraf": "6.1.3",
     "typescript": "catalog:",
     "typescript-eslint": "8.56.2-alpha.1",
+    "unplugin-dts": "file://../unplugin-dts/packages/unplugin-dts",
     "vite": "7.3.1",
     "vite-tsconfig-paths": "6.1.1",
     "vitest": "4.1.0-beta.5"
   },
-  "packageManager": "pnpm@10.30.3+sha512.c961d1e0a2d8e354ecaa5166b822516668b7f44cb5bd95122d590dd81922f606f5473b6d23ec4a5be05e7fcd18e8488d47d978bbe981872f1145d06e9a740017",
+  "packageManager": "pnpm@10.32.1+sha512.a706938f0e89ac1456b6563eab4edf1d1faf3368d1191fc5c59790e96dc918e4456ab2e67d613de1043d2e8c81f87303e6b40d4ffeca9df15ef1ad567348f2be",
   "engines": {
-    "node": "^24.0.0"
+    "node": ">=20.19.0"
   },
   "publishConfig": {
     "directory": "dist"

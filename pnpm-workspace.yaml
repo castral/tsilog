@@ -1,5 +1,5 @@
 catalog:
-  '@types/node': 24.11.0
+  '@types/node': 20.19.0
   typescript: 5.9.3
 
 ignoredBuiltDependencies:

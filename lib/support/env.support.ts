@@ -31,8 +31,9 @@ interface Versions {
 }
 
 interface GlobalEnvironment {
-  process: (EnvFacade & Versions) | undefined;
   meta: EnvFacade | undefined;
+  navigator: Navigator | WorkerNavigator | undefined;
+  process: (EnvFacade & Versions) | undefined;
 }
 
 export interface Environment {
@@ -51,7 +52,7 @@ export interface Environment {
   get(key: string): boolean | string | undefined;
 }
 
-class EnvironmentLoader implements Environment {
+export class EnvironmentMap implements Environment {
   private readonly isProperty = Enum.createIsValueGuard(EnvironmentProperty);
   private _globals: GlobalEnvironment | undefined;
   #boolCache: Record<EnvironmentProperty, boolean> | undefined;
@@ -59,12 +60,13 @@ class EnvironmentLoader implements Environment {
 
   private get globals(): GlobalEnvironment {
     return this._globals ??= {
-      process: (typeof globalThis.process !== 'undefined' && 'env' in globalThis.process)
-               ? globalThis.process
-               : undefined,
       meta: (typeof import.meta.env !== 'undefined')
             ? import.meta
             : undefined,
+      navigator: globalThis.navigator,
+      process: (typeof globalThis.process !== 'undefined' && 'env' in globalThis.process)
+               ? globalThis.process
+               : undefined,
     };
   }
 
@@ -188,7 +190,7 @@ class EnvironmentLoader implements Environment {
           case EnvironmentProperty.Worker: {
             flags[property] = 'WorkerGlobalScope' in globalThis
               || 'importScripts' in globalThis
-              || globalThis.navigator.userAgent.includes('Cloudflare-Workers');
+              || (this.globals.navigator?.userAgent.includes('Cloudflare-Workers') ?? false);
             break;
           }
           default: {
@@ -231,5 +233,3 @@ class EnvironmentLoader implements Environment {
     return (flag !== undefined) ? flag === 'true' : undefined;
   }
 }
-
-export const environment: Environment = new EnvironmentLoader();

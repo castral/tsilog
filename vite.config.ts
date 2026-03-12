@@ -1,6 +1,7 @@
 /// <reference types="vitest/config" />
 import { defineConfig, type UserConfig } from 'vite';
 import viteTsConfigPaths from 'vite-tsconfig-paths';
+import viteDts from 'unplugin-dts/vite';
 
 export default defineConfig({
   plugins: [
@@ -8,6 +9,9 @@ export default defineConfig({
       projects: [
         './tsconfig.json',
       ],
+    }),
+    viteDts({
+      tsconfigPath: './tsconfig.json',
     }),
   ],
 
@@ -27,7 +31,6 @@ export default defineConfig({
         format: 'esm',
         strict: true,
       },
-      treeshake: 'recommended',
     },
   },
 

@@ -1,37 +1,45 @@
-import { type Facade, LevelCode, LevelName, type LogCall } from './facade.ts';
-import { chain, type Mapper } from './mapper/mapper.ts';
-import { environment } from './support/env.support.ts';
-import { Transporter } from './transporter/transporter.ts';
+import { Enum } from '@castral/ts-enum';
 
-export function tsilog<Log = Record<string, unknown>>(
-  userMapper: Mapper<Log[], Log[]> | undefined,
-  transporters: Transporter<Log>[] = [],
-): Facade {
+import type { Configuration } from './configuration.ts';
 
-  const inputMapper = (..._args: unknown[]): Log[] => {
-    return [];
-  };
-  const mapper = (userMapper === undefined)
-                 ? inputMapper
-                 : chain(inputMapper, userMapper);
+import { type Facade, LevelCode, LevelName, toCode } from './facade.ts';
 
-  const logger = Object.fromEntries(
-    Object.values(LevelName).map((levelName) =>
-      [
-        levelName,
-        (...args: unknown[]) => log(levelName, ...args),
-      ],
-    ),
-  ) as Record<LevelName, LogCall>;
+export function tsilog(config: Configuration): Facade {
 
-  const log = (level: LevelCode | LevelName, ...args: unknown[]) => {
-    if (!environment.isEnabled) {
+  const makeFacade = (levels: LevelName[] = Enum.values(LevelName),
+                      logger: Facade = {} as Facade): Facade => {
+    const level = levels.shift();
+    if (level === undefined) {
       return logger;
     }
 
-    const logs = mapper(level, ...args);
-    for (const transporter of transporters) {
-      transporter.transport(logs);
+    return makeFacade(levels, {
+      ...logger,
+      [level]: (...args: unknown[]): Facade => log(level, args),
+    });
+  };
+
+  const logger = makeFacade();
+
+  const log = (level: LevelCode | LevelName, ...args: unknown[]): Facade => {
+    const logLevel = Enum.isValue(LevelCode, level) ? level : toCode(level);
+    const filterLevel = Enum.isValue(LevelCode, config.levelCutoff)
+                        ? config.levelCutoff
+                        : toCode(config.levelCutoff);
+
+    if (!config.env.isEnabled || logLevel < filterLevel) {
+      return logger;
+    }
+
+    const logs = config.mapper([level, ...args]);
+    const formattedLogs = config.formatter(logs);
+    const reportedLogs = config.reporters.map((reporter) => reporter(formattedLogs));
+
+    // TODO: Figure out mapping between Reporter[] and Transporter[]
+    for (const transporter of config.transporters) {
+      for (const outputLogs of reportedLogs) {
+        void transporter(outputLogs);
+      }
     }
 
     return logger;
@@ -39,3 +47,5 @@ export function tsilog<Log = Record<string, unknown>>(
 
   return logger;
 }
+
+export * from './configuration.ts';

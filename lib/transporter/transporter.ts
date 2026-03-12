@@ -1,10 +1,4 @@
-import type { Formatter } from '../formatter/formatter.ts';
-import type { Reporter } from '../reporter/reporter.ts';
+import type { Log } from '../facade.ts';
+import type { Mapper } from '../mapper/mapper.ts';
 
-export abstract class Transporter<Log, Out = string> {
-
-  public constructor(protected readonly formatter: Formatter<Log, Out>,
-                     protected readonly reporter: Reporter<Out>[]) {}
-
-  public abstract transport(input: Log[]): void;
-}
+export type Transporter = Mapper<Log[] | Promise<Log[]>, void | Promise<void>>;

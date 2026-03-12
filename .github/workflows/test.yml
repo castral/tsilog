@@ -26,6 +26,6 @@ jobs:
         with:
           cache: true
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --no-frozen-lockfile # TODO: remove --no-frozen-lockfile when unplugin-dts is released
       - name: Verify
         run: pnpm tsi:verify

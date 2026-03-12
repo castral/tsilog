@@ -1,7 +1,16 @@
 /// <reference types="vitest/config" />
-import { defineConfig, type UserConfig } from 'vite';
+import { defineConfig, type Plugin as VitePlugin, type UserConfig } from 'vite';
 import viteTsConfigPaths from 'vite-tsconfig-paths';
-import viteDts from 'unplugin-dts/vite';
+
+const viteDts: VitePlugin[] = [];
+try {
+  // @ts-ignore
+  const module = await import('unplugin-dts/vite');
+  const plugin = module.default({tsconfigPath: './tsconfig.json'});
+  viteDts.push(...(Array.isArray(plugin) ? plugin : [plugin]));
+} catch (e) {
+  console.error('Failed to load unplugin-dts/vite', e);
+}
 
 export default defineConfig({
   plugins: [
@@ -10,9 +19,7 @@ export default defineConfig({
         './tsconfig.json',
       ],
     }),
-    viteDts({
-      tsconfigPath: './tsconfig.json',
-    }),
+    ...viteDts,
   ],
 
   build: {

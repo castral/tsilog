@@ -11,7 +11,6 @@ on:
 
 jobs:
   test:
-    if: ${{ false }} # paused while unplugin-dts hasn't released latest version
     name: Test
     runs-on: ${{ matrix.os }}
 

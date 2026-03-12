@@ -41,6 +41,7 @@ The current type means `logger.info("hello")` types `"hello"` as a level paramet
 **Action:**
 - [x] Either remove the identity overload, or constrain it to `chain<T, R>(mapper: Mapper<T, R>): Mapper<T, R>`
 
+
 ---
 
 ## Priority 2: Critical Missing Features
@@ -104,6 +105,7 @@ Formatter is `(input: In[]): Out[]`, Reporter is `(output: Out[]): void`. Single
 - [x] Decide if batching/buffering is a first-class feature (if yes, keep array-oriented)
 - [ ] ~~If not, consider single-item core interface with optional batch wrapper~~
 
+
 ---
 
 ## Priority 4: Future Design Considerations
@@ -146,3 +148,130 @@ globalThis.navigator.userAgent.includes('Cloudflare-Workers')
 
 **Fix:**
 - [x] Add optional chaining: `globalThis.navigator?.userAgent?.includes('Cloudflare-Workers') ?? false`
+
+
+---
+
+## New Issues (found during implementation review)
+
+### T-12: Fix `Formatter` type — output is locked to `Log[]`
+
+**File:** `lib/formatter/formatter.ts`
+
+`Formatter = Mapper<Log[], Log[]>` — input and output are the same type. A formatter that produces
+`string[]`, YAML, or a styled `Surrogate` object cannot be expressed. `template.formatter.ts`
+currently returns `[]` as `Log[]`, confirming this hasn't been resolved yet.
+
+**Action:**
+- [ ] Parameterize: `Formatter<Out = Log[]> = Mapper<Log[], Out>`
+- [ ] Update `Configuration` to carry the output type parameter, or accept `Formatter<unknown>` and let the transporter constrain it
+- [ ] Update `template.formatter.ts` to return the correct output type
+
+### T-13: Fix double-wrap bug in `tsilog.ts`
+
+**File:** `lib/tsilog.ts`
+
+```typescript
+// facade closure:
+[level]: (...args: unknown[]): Facade => log(level, args),   // ← args packed as one argument
+// log() signature:
+const log = (level: LevelCode | LevelName, ...args: unknown[]) =>
+  config.mapper([level, ...args]);  // ← spreads [level, [originalArgs]] — double wrapped
+```
+
+`log(level, args)` should be `log(level, ...args)`. User arguments arrive at the mapper wrapped
+in an extra array.
+
+**Action:**
+- [ ] Change `log(level, args)` to `log(level, ...args)` in the facade closure
+
+### T-14: Resolve the Reporter↔Transporter pairing (the TODO)
+
+**File:** `lib/tsilog.ts`
+
+```typescript
+// TODO: Figure out mapping between Reporter[] and Transporter[]
+for (const transporter of config.transporters) {
+  for (const outputLogs of reportedLogs) {
+    void transporter(outputLogs);  // N×M broadcast — every reporter output goes to every transporter
+  }
+}
+```
+
+`linkChains` in `mapper.ts` was clearly added for this purpose and should be used here. The
+decision is how to model the pairing in `Configuration`.
+
+**Options (pick one):**
+- [ ] **PipelineUnit model** *(recommended)* — replace flat `reporters[]` + `transporters[]` with
+  `units: PipelineUnit[]` where each unit owns its reporter(s) and transporter(s). Clean type
+  safety, no accidental N×M broadcast.
+- [ ] **Flat arrays with zip** — keep flat arrays, zip reporters to transporters by index in the
+  factory. Simpler config, but fragile (mismatched lengths silently drop entries).
+
+**Note:** Also needs to handle `void | Promise<void>` from transporter — bare `void transporter(...)`
+swallows async errors silently.
+
+
+---
+
+## Priority 5: First Concrete Implementations
+
+Blocked on T-12 and T-14 being resolved.
+
+### T-15: Implement `no-op.reporter.ts`
+
+**File:** `lib/reporter/no-op.reporter.ts` *(stub exists, empty)*
+
+Trivial — `(logs) => logs`. Needed before tests can assert pipeline behaviour without real side effects.
+
+- [ ] Implement no-op reporter
+
+### T-16: Implement `console.transporter.ts`
+
+**File:** `lib/transporter/console.transporter.ts` *(stub exists, empty)*
+
+Should dispatch to `console.log` / `console.warn` / `console.error` based on log level in each entry.
+
+- [ ] Implement console transporter
+
+### T-17: Wire `consoleConfig()` with real instances
+
+**File:** `lib/configuration.ts`
+
+`reporters: []` and `transporters: []` are both empty arrays. The config factory produces a logger
+that does nothing end-to-end.
+
+- [ ] Populate `consoleConfig()` with `no-op.reporter` (or `cli.reporter` once it exists) and `console.transporter`
+
+### T-18: Replace spec stub with real tests
+
+**File:** `spec/tsilog.spec.ts`
+
+`it('should work', () => { console.debug(logger) })` is not a test.
+
+- [ ] Level gate fires correctly (spy on pipeline, assert no invocation below cutoff)
+- [ ] Pipeline runs stages in order (mapper → formatter → reporter → transporter)
+- [ ] `no-op` reporter suppresses transport
+- [ ] `consoleConfig()` produces output to stdout
+
+---
+
+## Tooling
+
+### T-19: Wire or remove `@microsoft/api-extractor`
+
+**File:** `package.json`
+
+`@microsoft/api-extractor` is in `devDependencies` but not referenced in any script. Either
+integrate it into `tsi:build` to produce a clean `.d.ts` rollup, or remove it.
+
+- [ ] Wire into `tsi:build` / `tsi:package`, or remove from devDependencies
+
+### T-20: Implement `pub:jsr` and `pub:npm` scripts
+
+**File:** `package.json`
+
+Both are `"tbd"`. Package exports are now correct — these just need the publish commands.
+
+- [ ] `"pub:jsr": "jsr publish"`
+- [ ] `"pub:npm": "npm publish --access public"`

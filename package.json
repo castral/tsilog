@@ -49,7 +49,7 @@
     "pub:jsr": "tbd",
     "pub:npm": "tbd",
     "tsi:build": "tsc --build --verbose && vite build",
-    "tsi:clean": "rimraf -v dist node_modules coverage .eslintcache types && pnpm install",
+    "tsi:clean": "rimraf -v dist node_modules coverage .eslintcache types pnpm-lock.yaml && pnpm install",
     "tsi:package": "pnpm run tsi:verify && vite build",
     "tsi:release": "pnpm run tsi:package && pnpm run '/^pub:.+/'",
     "tsi:test": "tsc --project tsconfig.spec.json && vitest --pool=threads --run --coverage.enabled=false",

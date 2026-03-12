@@ -53,7 +53,7 @@
     "tsi:package": "pnpm run tsi:verify && vite build",
     "tsi:release": "pnpm run tsi:package && pnpm run '/^pub:.+/'",
     "tsi:test": "tsc --project tsconfig.spec.json && vitest --pool=threads --run --coverage.enabled=false",
-    "tsi:verify": "pnpm run '/^chk:.+/'"
+    "tsi:verify": "pnpm run \"/^chk:.+/\""
   },
   "dependencies": {
     "@castral/ts-enum": "1.1.0"

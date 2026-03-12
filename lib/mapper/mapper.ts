@@ -1,4 +1,8 @@
+import type { Configuration } from '../configuration.ts';
+
 export type Mapper<In, Out> = (input: In) => Out;
+
+export type MapperFactory<In, Out> = Mapper<Partial<Configuration>, Mapper<In, Out>>;
 
 export function chain<In, A, Out>(
   map1: Mapper<In, A>,

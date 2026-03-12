@@ -163,9 +163,9 @@ globalThis.navigator.userAgent.includes('Cloudflare-Workers')
 currently returns `[]` as `Log[]`, confirming this hasn't been resolved yet.
 
 **Action:**
-- [ ] Parameterize: `Formatter<Out = Log[]> = Mapper<Log[], Out>`
-- [ ] Update `Configuration` to carry the output type parameter, or accept `Formatter<unknown>` and let the transporter constrain it
-- [ ] Update `template.formatter.ts` to return the correct output type
+- [x] Parameterize: `Formatter<Out = Log[]> = Mapper<Log[], Out>`
+- [x] Update `Configuration` to carry the output type parameter, or accept `Formatter<unknown>` and let the transporter constrain it
+- [x] Update `template.formatter.ts` to return the correct output type
 
 ### T-13: Fix double-wrap bug in `tsilog.ts`
 
@@ -183,7 +183,7 @@ const log = (level: LevelCode | LevelName, ...args: unknown[]) =>
 in an extra array.
 
 **Action:**
-- [ ] Change `log(level, args)` to `log(level, ...args)` in the facade closure
+- [x] Change `log(level, args)` to `log(level, ...args)` in the facade closure
 
 ### T-14: Resolve the Reporter↔Transporter pairing (the TODO)
 

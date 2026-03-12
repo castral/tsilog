@@ -15,7 +15,7 @@ export function tsilog(config: Configuration): Facade {
 
     return makeFacade(levels, {
       ...logger,
-      [level]: (...args: unknown[]): Facade => log(level, args),
+      [level]: (...args: unknown[]): Facade => log(level, ...args),
     });
   };
 
@@ -32,8 +32,7 @@ export function tsilog(config: Configuration): Facade {
     }
 
     const logs = config.mapper([level, ...args]);
-    const formattedLogs = config.formatter(logs);
-    const reportedLogs = config.reporters.map((reporter) => reporter(formattedLogs));
+    const reportedLogs = config.reporters.map((reporter) => reporter(logs));
 
     // TODO: Figure out mapping between Reporter[] and Transporter[]
     for (const transporter of config.transporters) {

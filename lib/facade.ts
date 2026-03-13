@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-enum-comparison */
-export enum LevelName {
+export enum SeverityName {
   TRACE = 'trace',
   DEBUG = 'debug',
   INFO = 'info',
@@ -8,7 +8,7 @@ export enum LevelName {
   FATAL = 'fatal',
 }
 
-export enum LevelCode {
+export enum SeverityCode {
   trace = 1,
   debug,
   info,
@@ -17,58 +17,61 @@ export enum LevelCode {
   fatal,
 }
 
-export const LevelMap: Readonly<Record<LevelName, LevelCode>
-                              & Record<LevelCode, LevelName>> = Object.freeze({
-  [LevelName.TRACE]: LevelCode.trace,
-  [LevelName.DEBUG]: LevelCode.debug,
-  [LevelName.INFO]: LevelCode.info,
-  [LevelName.WARN]: LevelCode.warn,
-  [LevelName.ERROR]: LevelCode.error,
-  [LevelName.FATAL]: LevelCode.fatal,
-  [LevelCode.trace] :LevelName.TRACE,
-  [LevelCode.debug] :LevelName.DEBUG,
-  [LevelCode.info] :LevelName.INFO,
-  [LevelCode.warn] :LevelName.WARN,
-  [LevelCode.error] :LevelName.ERROR,
-  [LevelCode.fatal] :LevelName.FATAL,
+export const SeverityMap: Readonly<Record<SeverityName, SeverityCode>
+                                 & Record<SeverityCode, SeverityName>> = Object.freeze({
+  [SeverityName.TRACE]: SeverityCode.trace,
+  [SeverityName.DEBUG]: SeverityCode.debug,
+  [SeverityName.INFO]:  SeverityCode.info,
+  [SeverityName.WARN]:  SeverityCode.warn,
+  [SeverityName.ERROR]: SeverityCode.error,
+  [SeverityName.FATAL]: SeverityCode.fatal,
+  [SeverityCode.trace]: SeverityName.TRACE,
+  [SeverityCode.debug]: SeverityName.DEBUG,
+  [SeverityCode.info]:  SeverityName.INFO,
+  [SeverityCode.warn]:  SeverityName.WARN,
+  [SeverityCode.error]: SeverityName.ERROR,
+  [SeverityCode.fatal]: SeverityName.FATAL,
 } as const);
 
-export function isLevelCode(value: unknown): value is LevelCode {
+export function isCode(value: unknown): value is SeverityCode {
   return typeof value === 'number' &&
     !Number.isNaN(value) &&
     Number.isFinite(value) &&
-    value >= LevelCode.trace &&
-    value <= LevelCode.fatal;
+    value >= SeverityCode.trace &&
+    value <= SeverityCode.fatal;
 }
 
-export function isLevelName(value: unknown): value is LevelName {
+export function isName(value: unknown): value is SeverityName {
   return typeof value === 'string' && (
-    value === LevelName.TRACE ||
-    value === LevelName.DEBUG ||
-    value === LevelName.INFO ||
-    value === LevelName.WARN ||
-    value === LevelName.ERROR ||
-    value === LevelName.FATAL
+    value === SeverityName.TRACE ||
+    value === SeverityName.DEBUG ||
+    value === SeverityName.INFO ||
+    value === SeverityName.WARN ||
+    value === SeverityName.ERROR ||
+    value === SeverityName.FATAL
   );
 }
 
-export function toName(value: LevelCode): LevelName;
-export function toName(value: unknown): LevelName | undefined {
-  return isLevelCode(value) ? LevelMap[value] : undefined;
+export function toName(value: SeverityCode): SeverityName;
+export function toName(value: unknown): SeverityName | undefined {
+  return isCode(value) ? SeverityMap[value] : undefined;
 }
 
-export function toCode(value: LevelName): LevelCode;
-export function toCode(value: unknown): LevelCode | undefined {
-  return isLevelName(value) ? LevelMap[value] : undefined;
+export function toCode(value: SeverityName): SeverityCode;
+export function toCode(value: unknown): SeverityCode | undefined {
+  return isName(value) ? SeverityMap[value] : undefined;
 }
 
 export type JSONPrimitive = boolean | number | object | string | null;
 
 export interface Log {
+  severity: SeverityCode | SeverityName;
   arguments: unknown[];
-  context: Record<string, JSONPrimitive>;
+  context?: Map<string, JSONPrimitive>;
+
+  toString(): string;
 }
 
 export type LogCall = (...args: unknown[]) => Facade;
 
-export type Facade = Record<LevelName, LogCall>;
+export type Facade = Record<SeverityName, LogCall> & Record<symbol, unknown>;

@@ -4,104 +4,249 @@ Tasty logging for tasty TypeScript projects.
 
 ## Overview
 
-tsilog is a logging library designed to work identically across Node.js, Bun, Deno, browser, and worker environments. It treats logging as a **streaming transformer chain** with four composable stages:
+tsilog is a logging library designed to work identically across Node.js, Bun, Deno, browser, and
+worker environments. It treats logging as a **composable directed acyclic graph (DAG)** of pure
+functions, rather than a fixed linear stage pipeline.
 
-```
-mapper -> formatter -> transporter[] -> reporter[]
-```
-
-Each stage is independently configurable, testable, and composable. The library exposes a facade (the logger object) with methods for each log level (`trace`, `debug`, `info`, `warn`, `error`, `fatal`) that feed into the pipeline.
-
----
-
-## Pipeline Stages
-
-### Stage 1: Mapper
-
-**Interface:** `Mapper<T, R>` — `lib/mapper/mapper.ts`
-
-```
-(...args: unknown[]) --> Mapper --> Mapper --> ... --> Log[]
-```
-
-Mappers are pure functions chained together via `chain()`. The first mapper in the chain (the "input mapper") receives the raw variadic arguments from the log call and produces an intermediate `Log` object. Subsequent mappers transform `Log[]` to `Log[]`, applying operations like:
-
-- **Entity mapping** (`entity.mapper.ts`) — convert raw args into structured log entities
-- **Meta mapping** (`meta.mapper.ts`) — attach metadata (timestamps, request IDs, module names)
-- **Secret hiding** (`secret.mapper.ts`) — redact sensitive data (tokens, passwords, PII)
-
-Mappers compose via the `chain()` utility, which provides type-safe function composition with overloads for up to 6 stages:
+The pipeline is expressed entirely through two composition primitives:
 
 ```typescript
-const pipeline = chain(inputMapper, metaMapper, secretMapper);
-// Type: Mapper<unknown[], Log[]>
+chain(a, b)          // sequential: a → b  (Mapper<In, Out>)
+
+fanOut(a, b, c)      // parallel:     → a
+                     //               → b  (Mapper<In, Promise<void>>)
+                     //               → c
 ```
 
-### Stage 2: Formatter
-
-**Interface:** `Formatter<In, Out>` — `lib/formatter/formatter.ts`
-
-```
-Log[] --> Formatter --> Out[]
-```
-
-A formatter takes the structured `Log[]` output from the mapper stage and transforms it into a target format. Each transporter owns one formatter. Planned implementations:
-
-- **JSON formatter** (`json.formatter.ts`) — serialize logs to JSON strings
-- **YAML formatter** (`yaml.formatter.ts`) — serialize logs to YAML strings
-- **Template formatter** (`template.formatter.ts`) — apply template strings with placeholder interpolation, potentially returning strings with attribute/range metadata for styled output
-
-The formatter output type is generic — most commonly `string[]`, but could be more complex (e.g., a `Surrogate` string object carrying style ranges for later prettification).
-
-### Stage 3: Transporter
-
-**Abstract class:** `Transporter<Log, Out>` — `lib/transporter/transporter.ts`
-
-```
-Log[] --> Transporter --> [formatter(Log[]) --> Out[]] --> reporter[](Out[])
-```
-
-A transporter is the orchestrator that connects a formatter to one or more reporters. Each transporter owns:
-- One `Formatter<Log, Out>` — transforms logs into the output format
-- One or more `Reporter<Out>[]` — delivers the formatted output to its destination
-
-You can have **multiple transporters** per logger instance, enabling a single log call to be routed to different destinations with different formatting:
-
-```
-logger.info("request complete")
-  --> ConsoleTransporter (template formatter + CLI reporter)
-  --> FetchTransporter (JSON formatter + HTTP reporter)
-  --> FileTransporter (JSON formatter + file reporter)
-```
-
-Planned implementations:
-
-- **Console transporter** (`console.transporter.ts`) — routes to `console.log/warn/error`
-- **Fetch transporter** (`fetch.transporter.ts`) — sends logs via HTTP `fetch` requests
-- **File transporter** (`file.transporter.ts`) — writes logs to the filesystem
-- **Raw transporter** (`raw.transporter.ts`) — passes formatted output through with minimal processing (useful for DOM rendering, custom pipelines)
-
-### Stage 4: Reporter
-
-**Interface:** `Reporter<Out>` — `lib/reporter/reporter.ts`
-
-```
-Out[] --> Reporter --> side effect (console, file, DOM, network, etc.)
-```
-
-Reporters are the final stage — they receive formatted output and perform the actual side effect of delivering it. A reporter might buffer, prettify, colorize, or apply any last-minute transformation before writing to its destination. Planned implementations:
-
-- **CLI reporter** (`cli.reporter.ts`) — terminal output with ANSI colors and formatting
-- **CSS reporter** (`css.reporter.ts`) — browser console output using `%c` CSS styling, or transformation to HTML entities for DOM rendering
-- **No-op reporter** (`no-op.reporter.ts`) — silent/discard (useful for testing or disabled loggers)
+Any logging topology — single destination, multi-destination, shared formatter, branching
+reporter — is expressed by nesting these two functions. The configuration is pure data; the
+composed pipeline is derived from it at factory time.
 
 ---
 
-## Log Levels
+## The Two Primitives
+
+### `chain(...mappers)`
+
+Sequential composition. Each mapper's output becomes the next mapper's input. Type-safe via
+overloads for up to 6 stages; the implementation uses `reduce`.
+
+```
+unknown[] → [mapper] → Log[] → [formatter] → LogType[] → [reporter] → Promise<WireType[]>
+```
+
+### `fanOut(...branches)`
+
+Parallel fan-out. All branches receive the same input and run concurrently. Returns
+`Promise<void>` — the branches are sinks, not transformers.
+
+```typescript
+function fanOut<In>(...branches: Mapper<In, Promise<void>>[]): Mapper<In, Promise<void>> {
+  return (input) => Promise.all(branches.map(b => b(input))).then(() => undefined);
+}
+```
+
+```
+           ┌─→ [branch A] ─→ void
+input  ────┼─→ [branch B] ─→ void   → Promise<void>
+           └─→ [branch C] ─→ void
+```
+
+---
+
+## Pipeline Topology
+
+A complete pipeline from raw call arguments to side effects is a single
+`Mapper<unknown[], Promise<void>>` composed from the four semantic stages:
+
+```
+reason:  receive args → represent as Log → format for destination → emit as side effect
+stage:      Mapper    →     Formatter    →        Reporter        →    Transporter
+input:    unknown[]   →      Log[]       →       LogType[]        →    WireType[]
+output:    Log[]      →    LogType[]     →   Promise<WireType[]>  →  Promise<void>
+```
+
+Because `fanOut` expresses parallel branches, a single call can route to multiple
+destinations without repeating shared upstream work:
+
+```typescript
+// JSON formatter shared between file and fetch sinks;
+// template formatter used only for console — expressed once, no duplication:
+
+const pipeline = chain(
+  mapperStage,
+  fanOut(
+    chain(jsonFormatter, fanOut(
+      chain(fileReporter,  fileTransporter),
+      chain(fetchReporter, fetchTransporter),
+    )),
+    chain(templateFormatter, fanOut(
+      chain(cliReporter, consoleTransporter),
+    )),
+  ),
+);
+```
+
+Shared nodes are shared references — if `jsonFormatter` is referenced in two branches it
+is instantiated once and called twice per log event, not re-created.
+
+---
+
+## Stage Interfaces
+
+### Mapper
+
+**File:** `lib/mapper/mapper.ts`
+
+```typescript
+type Mapper<In, Out> = (input: In) => Out;
+type MapperFactory<Config, In = unknown[], Out = unknown[]> = Mapper<Config, Mapper<In, Out>>;
+```
+
+The entry-point mapper receives `unknown[]` (the raw variadic log call arguments). Subsequent
+mappers in the chain transform `Log[]` to `Log[]`. Concrete implementations:
+
+- **`entity.mapper.ts`** — converts raw args to structured `Log` entities
+- **`meta.mapper.ts`** — attaches metadata: timestamps, logger name, request IDs
+- **`secret.mapper.ts`** — redacts sensitive fields: tokens, passwords, PII
+
+### Formatter
+
+**File:** `lib/formatter/formatter.ts`
+
+```typescript
+type Formatter<LogType = Log[]> = Mapper<Log[], LogType>;
+```
+
+Transforms `Log[]` into the wire representation for a particular destination. The output type
+is generic — `string[]` for text destinations, a `Surrogate` object for styled terminal
+output, a structured record for database sinks. Planned implementations:
+
+- **`json.formatter.ts`** — serializes to JSON strings
+- **`yaml.formatter.ts`** — serializes to YAML strings
+- **`template.formatter.ts`** — interpolates template strings with optional style range metadata
+  via `Surrogate` for downstream prettification
+
+### Reporter
+
+**File:** `lib/reporter/reporter.ts`
+
+```typescript
+type Reporter<LogType, WireType> = Mapper<LogType, Promise<WireType>>;
+```
+
+Owns *timing and serialization* — when to emit and in what final wire format. A buffering
+reporter delays emission; a raw reporter passes through immediately. Planned implementations:
+
+- **`raw.reporter.ts`** — immediate passthrough, no transformation
+- **`buffer.reporter.ts`** — batches output and emits on next runloop tick (or configurable
+  schedule)
+- **`no-op.reporter.ts`** — discards output; useful for testing and disabled logger instances
+
+### Transporter
+
+**File:** `lib/transporter/transporter.ts`
+
+```typescript
+type Transporter<WireType> = Mapper<WireType | Promise<WireType>, Promise<void>>;
+```
+
+Owns *I/O destination* — where the output goes. Accepts `Promise<WireType>` to compose
+naturally with async reporters. Planned implementations:
+
+- **`console.transporter.ts`** — dispatches to `console.log/warn/error` by severity level
+- **`fetch.transporter.ts`** — sends logs via HTTP `fetch`
+- **`file.transporter.ts`** — appends to a log file (Node/Deno/Bun)
+- **`callback.transporter.ts`** — user-provided callback; escape hatch for custom sinks
+
+
+---
+
+## Configuration
+
+**Defined in:** `lib/configuration.ts`
+
+Two configuration types are exposed:
+
+### `UserConfig`
+
+The consumer-facing configuration. All fields optional, no type parameters, no mapper
+knowledge required. Suitable as a constructor argument for most use cases.
+
+```typescript
+interface UserConfig {
+  name?: string;
+  nameSeparator?: string;
+  severityLimit?: SeverityCode | SeverityName;
+}
+```
+
+### `TsilogConfig<LogType, WireType>`
+
+The fully-resolved internal configuration produced by config factories. Carries the
+composed pipeline as a single `Mapper<unknown[], Promise<void>>`.
+
+```typescript
+interface TsilogConfig<LogType extends Log[] = Log[], WireType = string[]>
+  extends Required<UserConfig> {
+
+  env: Environment;
+  mapperStage: Mapper<unknown[], Log[]>;
+  pipeline: Mapper<LogType, Promise<void>>;
+}
+```
+
+`pipeline` is the fully-composed DAG from formatter through to all transporters. The
+`mapperStage` feeds into it at factory time. Consumers do not interact with either field
+directly — they are assembled by config factory functions.
+
+### Config Factories
+
+- **`consoleConfig(userConfig?)`** — produces a `TsilogConfig` wired for console output
+- **`subLoggerConfig(parent, subConfig?)`** — inherits a parent `TsilogConfig`, merges
+  `UserConfig` overrides, and scopes the logger name (`parent.sub` by default)
+
+### Type Variance
+
+`TsilogConfig` is **covariant** in `WireType` (output position) and **contravariant** in
+`LogType` (input position through `Reporter`). The `tsilog()` factory must be generic to
+preserve these type parameters through to the composed pipeline:
+
+```typescript
+function tsilog<L extends Log[], W>(config: TsilogConfig<L, W>): Facade
+// NOT: function tsilog(config: TsilogConfig): Facade  ← widens to unknown[], breaks variance
+```
+
+---
+
+## Sub-loggers
+
+Sub-loggers are scoped logger instances that inherit a parent's pipeline configuration.
+They are created via the `child()` method on the `Facade`, which is the idiomatic API:
+
+```typescript
+const log = tsilog(consoleConfig({ name: 'app' }));
+const requestLog = log.child({ name: 'request' });
+// requestLog.name === 'app.request'
+```
+
+Internally, `child()` calls `subLoggerConfig(parentConfig, userConfig)` and creates a new
+factory closure. The parent's `mapperStage` and `pipeline` are inherited by reference —
+no re-initialization of shared stages.
+
+```typescript
+type Facade = Record<SeverityName, LogCall> & {
+  child(config?: UserConfig): Facade;
+};
+```
+
+---
+
+## Log Severity
 
 **Defined in:** `lib/facade.ts`
 
-Six log levels with both string names and numeric codes:
+Six severity levels with both string names and numeric codes:
 
 | Name    | Code | Typical Use                        |
 |---------|------|------------------------------------|
@@ -112,57 +257,10 @@ Six log levels with both string names and numeric codes:
 | `error` | 5    | Error events, recoverable failures |
 | `fatal` | 6    | Critical failures, app termination |
 
-The `LevelMap` provides bidirectional lookup between names and codes. Type guards (`isLevelCode`, `isLevelName`) and conversion functions (`toName`, `toCode`) are provided for safe runtime level handling.
+The `SeverityMap` provides bidirectional lookup. Type guards (`isSeverityCode`,
+`isSeverityName`) and conversion functions (`toName`, `toCode`) are provided for safe
+runtime level handling.
 
----
-
-## Logger Facade
-
-**Defined in:** `lib/facade.ts`
-
-The facade is the user-facing API — a record of logging methods, one per level:
-
-```typescript
-type Facade = Record<LevelName, LogCall>;
-```
-
-Usage:
-
-```typescript
-const log = tsilog(mapper, transporters);
-
-log.info("server started", { port: 3000 });
-log.error("connection failed", error);
-log.debug("request payload", payload);
-```
-
-The logger returns itself from each call, enabling method chaining:
-
-```typescript
-log.info("step 1").debug("details").warn("careful");
-```
-
----
-
-## Configuration
-
-**Defined in:** `lib/configuration.ts`
-
-```typescript
-interface Configuration<Log = Record<string, unknown>> {
-  name: string;
-  levelCutoff: LevelCode | LevelName;
-  mapper: Mapper<unknown[], Log[]>;
-  additionalMapper: Mapper<Log[], Log[]>;
-  transporters: Transporter<Log>[];
-}
-```
-
-- **`name`** — logger instance identifier
-- **`levelCutoff`** — minimum level to process (logs below this level are dropped)
-- **`mapper`** — the input mapper (raw args to `Log[]`)
-- **`additionalMapper`** — user-provided post-processing mapper (`Log[]` to `Log[]`)
-- **`transporters`** — array of output transporter instances
 
 ---
 
@@ -170,25 +268,25 @@ interface Configuration<Log = Record<string, unknown>> {
 
 **Defined in:** `lib/support/env.support.ts`
 
-The `EnvironmentLoader` provides runtime environment detection with lazy evaluation and caching. It probes both `process.env` (Node.js/Bun/Deno) and `import.meta.env` (Vite/browser) to work across all target runtimes.
+The `EnvironmentLoader` provides cross-runtime environment detection with lazy evaluation
+and caching. Probes both `process.env` (Node/Bun/Deno) and `import.meta.env` (Vite/browser).
 
-### Detected Properties
+| Property       | Description                                          |
+|----------------|------------------------------------------------------|
+| `isBrowser`    | Running in a browser with `window` + `document`      |
+| `isNode`       | Running in Node.js                                   |
+| `isBun`        | Running in Bun                                       |
+| `isDeno`       | Running in Deno                                      |
+| `isWorker`     | Running in a Web Worker or Cloudflare Worker         |
+| `isCI`         | Running in a CI environment (`CI=true`)              |
+| `isProduction` | `NODE_ENV=production`                                |
+| `isTest`       | `NODE_ENV=test`                                      |
+| `isDebug`      | Debug mode enabled via `TSILOG_DEBUG=true`           |
+| `isEnabled`    | Logging enabled (default: true, via `TSILOG_ENABLED`)|
+| `asserts`      | Assertion mode (default: true, via `TSILOG_ASSERTS`) |
 
-| Property      | Description                                    |
-|---------------|------------------------------------------------|
-| `isBrowser`   | Running in a browser with `window` + `document`|
-| `isNode`      | Running in Node.js                             |
-| `isBun`       | Running in Bun                                 |
-| `isDeno`      | Running in Deno                                |
-| `isWorker`    | Running in a Web Worker or Cloudflare Worker   |
-| `isCI`        | Running in a CI environment (`CI=true`)        |
-| `isProduction`| `NODE_ENV=production`                          |
-| `isTest`      | `NODE_ENV=test`                                |
-| `isDebug`     | Debug mode enabled via `TSILOG_DEBUG=true`     |
-| `isEnabled`   | Logging enabled (default: true, via `TSILOG_ENABLED`) |
-| `asserts`     | Assertion mode (default: true, via `TSILOG_ASSERTS`)  |
-
-All boolean flags are cached after first evaluation. Custom configuration uses the `TSILOG_` prefix (e.g., `TSILOG_ENABLED=false` to disable logging globally).
+All boolean flags are cached after first evaluation. Each `TsilogConfig` carries its own
+`Environment` instance, allowing per-logger enable/disable without a global singleton.
 
 ---
 
@@ -196,14 +294,14 @@ All boolean flags are cached after first evaluation. Custom configuration uses t
 
 Located in `lib/support/`:
 
-| File                 | Purpose                                          | Status       |
-|----------------------|--------------------------------------------------|--------------|
-| `env.support.ts`     | Cross-runtime environment detection and caching  | Implemented  |
-| `string.support.ts`  | `Surrogate` class for template string interpolation with placeholder format (`%@`) and attribute ranges | Stub |
-| `color.support.ts`   | Terminal/browser color output utilities           | Stub         |
-| `error.support.ts`   | Error handling and formatting utilities           | Stub         |
-| `fs-path.support.ts` | Filesystem path utilities (Node/Deno)            | Stub         |
-| `storage.support.ts` | Persistent storage utilities (browser/Node)      | Stub         |
+| File                 | Purpose                                                        | Status      |
+|----------------------|----------------------------------------------------------------|-------------|
+| `env.support.ts`     | Cross-runtime environment detection and per-instance caching   | Implemented |
+| `string.support.ts`  | `Surrogate` — template string with placeholder format (`%@`) and style attribute ranges | Stub |
+| `color.support.ts`   | Terminal/browser color output utilities                        | Stub        |
+| `error.support.ts`   | Error formatting and classification utilities                  | Stub        |
+| `fs-path.support.ts` | Filesystem path utilities (Node/Deno/Bun)                      | Stub        |
+| `storage.support.ts` | Persistent storage utilities (browser/Node)                    | Stub        |
 
 ---
 
@@ -211,22 +309,18 @@ Located in `lib/support/`:
 
 **Defined in:** `lib/tsilog.ts`
 
-The `tsilog()` factory creates a configured logger instance:
-
 ```typescript
-function tsilog<Log = Record<string, unknown>>(
-  userMapper: Mapper<Log[], Log[]> | undefined,
-  transporters: Transporter<Log>[] = [],
-): Facade
+function tsilog<L extends Log[], W>(config: TsilogConfig<L, W>): Facade
 ```
 
 **Internal flow:**
 
-1. Creates an internal input mapper that converts raw call arguments to `Log[]`
-2. Chains the input mapper with the optional user-provided mapper via `chain()`
-3. Builds the facade object with a method for each log level
-4. Each facade method closes over its level and delegates to the internal `log()` function
-5. `log()` checks if logging is enabled (via `environment.isEnabled`), runs the mapper chain, then iterates over all transporters
+1. Composes the full pipeline: `chain(config.mapperStage, config.pipeline)`
+2. Builds the `Facade` — a record of severity-named methods via tail-recursive construction
+3. Each facade method closes over its severity level and delegates to `log()`
+4. `log()` checks `config.env.isEnabled` and `config.severityLimit`, then invokes the
+   composed pipeline and collects the resulting `Promise<void>`
+5. Returns `logger` (the facade itself) for method chaining
 
 ---
 
@@ -234,37 +328,37 @@ function tsilog<Log = Record<string, unknown>>(
 
 ```
 lib/
-  tsilog.ts              # Factory function (entry point)
-  facade.ts              # Log levels, LogCall type, Facade type
-  configuration.ts       # Configuration interface
+  tsilog.ts                   # Factory function and Facade builder
+  facade.ts                   # Severity levels, LogCall, Facade type
+  configuration.ts            # UserConfig, TsilogConfig, config factories
   mapper/
-    mapper.ts            # Mapper interface + chain() composition
-    entity.mapper.ts     # Entity transformation
-    meta.mapper.ts       # Metadata attachment
-    secret.mapper.ts     # Secret redaction
+    mapper.ts                 # Mapper<In,Out>, chain(), fanOut(), linkToChains()
+    entity.mapper.ts          # Raw args → structured Log entities
+    meta.mapper.ts            # Metadata attachment (timestamp, name, etc.)
+    secret.mapper.ts          # PII/secret redaction
   formatter/
-    formatter.ts         # Formatter interface
-    json.formatter.ts    # JSON serialization
-    yaml.formatter.ts    # YAML serialization
-    template.formatter.ts # Template-based formatting
-  transporter/
-    transporter.ts       # Abstract Transporter base class
-    console.transporter.ts
-    fetch.transporter.ts
-    file.transporter.ts
-    raw.transporter.ts
+    formatter.ts              # Formatter<LogType> interface
+    json.formatter.ts         # Log[] → JSON string[]
+    yaml.formatter.ts         # Log[] → YAML string[]
+    template.formatter.ts     # Log[] → Surrogate[] (styled template strings)
   reporter/
-    reporter.ts          # Reporter interface
-    cli.reporter.ts      # Terminal output
-    css.reporter.ts      # Browser/CSS styled output
-    no-op.reporter.ts    # Silent reporter
+    reporter.ts               # Reporter<LogType, WireType> interface
+    raw.reporter.ts           # Immediate passthrough
+    buffer.reporter.ts        # Batched/scheduled emission
+    no-op.reporter.ts         # Silent discard
+  transporter/
+    transporter.ts            # Transporter<WireType> interface
+    console.transporter.ts    # → console.log/warn/error
+    fetch.transporter.ts      # → HTTP fetch
+    file.transporter.ts       # → filesystem (Node/Deno/Bun)
+    callback.transporter.ts   # → user-provided callback
   support/
-    env.support.ts       # Environment detection
-    string.support.ts    # String utilities
-    color.support.ts     # Color utilities
-    error.support.ts     # Error utilities
-    fs-path.support.ts   # Filesystem path utilities
-    storage.support.ts   # Storage utilities
+    env.support.ts            # Cross-runtime environment detection
+    string.support.ts         # Surrogate string with style ranges
+    color.support.ts          # Terminal/browser color utilities
+    error.support.ts          # Error formatting utilities
+    fs-path.support.ts        # Filesystem path utilities
+    storage.support.ts        # Persistent storage utilities
 ```
 
 ---

@@ -1,6 +1,22 @@
+import type { UserConfig } from '../configuration.ts';
 import type { Log } from '../facade.ts';
-import type { Mapper } from './mapper.ts';
+import type { MapperFactory } from './mapper.ts';
 
-export const metaMapper: Mapper<Log[], Log[]> = (_input: Log[]): Log[] => {
-  return [];
+export enum MetaKey {
+  Time = 'time',
+}
+
+export const metaMapperFactory: MapperFactory<UserConfig, Log[], Log[]> =
+  (_config) => (input) => {
+  return input.map((log) => {
+    console.debug('inside meta.mapper');
+
+    if (log.context === undefined) {
+      log.context = new Map();
+
+      log.context.set(MetaKey.Time, Date.now());
+    }
+
+    return log;
+  });
 };

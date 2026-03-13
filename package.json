@@ -31,15 +31,15 @@
   "type": "module",
   "exports": {
     ".": {
-      "import": "./dist/tsilog.js",
-      "types": "./dist/tsilog.d.ts"
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
     }
   },
   "files": [
-    "./dist/tsilog.js",
-    "./dist/tsilog.js.map",
-    "./dist/tsilog.d.ts",
-    "./dist/tsilog.d.ts.map"
+    "./dist/index.js",
+    "./dist/index.js.map",
+    "./dist/index.d.ts",
+    "./dist/index.d.ts.map"
   ],
   "scripts": {
     "chk:coverage": "vitest --run --coverage.enabled=false --pool=threads",

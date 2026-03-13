@@ -1,12 +1,8 @@
-import type { Configuration } from '../configuration.ts';
+import type { UserConfig } from '../configuration.ts';
 import type { Log } from '../facade.ts';
 import type { MapperFactory } from '../mapper/mapper.ts';
-import type { Transporter } from './transporter.ts';
 
-export const callbackTransporter: MapperFactory<Log[] | Promise<Log[]>, void | Promise<void>> =
-  (_config: Partial<Configuration>): Transporter => {
-    return (_logs): void => {
-
-      return;
-    };
+export const callbackTransporterFactory: MapperFactory<UserConfig, Log[] | Promise<Log[]>, void> =
+  (_config) => {
+    return (_logs) => {};
   };

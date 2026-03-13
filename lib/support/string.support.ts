@@ -4,7 +4,7 @@
 // range = [prefix.length, replacement.length]
 // string.applyTo(range, Record<Attribute, Value>)
 
-import type { JSONPrimitive } from '../facade.ts';
+import { type JSONPrimitive, type Log, SeverityCode, SeverityName } from '../facade.ts';
 
 export enum AttributeName {
   Background = 'background',
@@ -20,11 +20,20 @@ export interface Attribute {
   replacement?: string | undefined;
 }
 
-export class Surrogate {
+export class Surrogate implements Log {
   private readonly attributes = new Map<AttributeName, Attribute[]>();
 
-  public constructor(public readonly template: string,
-                     public readonly placeholder: string = '%@') {}
+  public readonly severity: SeverityCode | SeverityName;
+  public readonly arguments: unknown[];
+  public readonly context: Map<string, JSONPrimitive>;
+
+  public constructor(log: Log,
+                     public readonly template: string,
+                     public readonly placeholder: string = '%@') {
+    this.severity = log.severity;
+    this.arguments = log.arguments;
+    this.context = new Map(log.context?.entries());
+  }
 
   public applyTo(range: Range, name: AttributeName, value?: JSONPrimitive, replacement?: string): this {
     let attributes = this.attributes.get(name);

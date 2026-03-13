@@ -28,9 +28,9 @@ export default defineConfig({
     target: 'es2022',
     sourcemap: true,
     lib: {
-      entry: './lib/tsilog.ts',
+      entry: './lib/index.ts',
       formats: ['es'],
-      fileName: () => 'tsilog.js',
+      fileName: () => 'index.js',
     },
     rollupOptions: {
       output: {

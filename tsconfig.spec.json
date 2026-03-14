@@ -1,10 +1,14 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "composite": false,
+    "incremental": false,
     "noEmit": true,
-    "sourceRoot": "spec",
   },
-  "include": ["spec/**/*.ts"],
+  "include": [
+    "lib/**/*.spec.ts",
+    "lib/spec-setup.ts"
+  ],
   "references": [
     {
       "path": ".",

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Formatter } from './formatter/formatter.ts';
 import type { Reporter } from './reporter/reporter.ts';
 import type { Surrogate } from './support/string.support.ts';
@@ -7,7 +6,7 @@ import type { Transporter } from './transporter/transporter.ts';
 import { type Log, SeverityCode, type SeverityName } from './facade.ts';
 import { templateFormatterFactory } from './formatter/template.formatter.ts';
 import { entityMapperFactory } from './mapper/entity.mapper.ts';
-import { chain, manyToChain, type Mapper } from './mapper/mapper.ts';
+import { chain, type Mapper } from './mapper/mapper.ts';
 import { metaMapperFactory } from './mapper/meta.mapper.ts';
 import { secretMapperFactory } from './mapper/secret.mapper.ts';
 import { bufferReporterFactory } from './reporter/buffer.reporter.ts';
@@ -45,7 +44,7 @@ export interface TsilogConfig<LogType extends Log[] = Log[], WireType = string[]
   // input:  unknown[] -> Log[] (in rep) -> LogType[] (out rep)  -> WireType[] (out literal)
   // stage:   Mapper   ->  Formatter[]   ->     Reporter[]       ->      Transporter[]
   // output:   Log[]   ->   LogType[]    -> Promise<WireType[]>  ->      Promise<void>
-  mapperStage: Mapper<any[], Log[]>;
+  mapperStage: Mapper<unknown[], Log[]>;
   formatterStage: Formatter<LogType>;
   reporterStage: Reporter<LogType, WireType>;
   transportStage: Transporter<WireType>;
@@ -53,10 +52,10 @@ export interface TsilogConfig<LogType extends Log[] = Log[], WireType = string[]
   isSubLogger: boolean;
 }
 
-const consoleMapperFactory = manyToChain(
-  entityMapperFactory,
-  metaMapperFactory,
-  secretMapperFactory,
+const consoleMapperFactory = (userConfig: UserConfig): Mapper<unknown[], Log[]> => chain(
+  entityMapperFactory(userConfig),
+  metaMapperFactory(userConfig),
+  secretMapperFactory(userConfig),
 );
 
 export function consoleConfig(userConfig?: UserConfig): TsilogConfig<Surrogate[]> {
@@ -69,7 +68,7 @@ export function consoleConfig(userConfig?: UserConfig): TsilogConfig<Surrogate[]
 
     env: new EnvironmentMap(),
 
-    mapperStage: chain(...consoleMapperFactory(userConfig ?? defaultUserConfig)),
+    mapperStage: consoleMapperFactory(userConfig ?? defaultUserConfig),
     formatterStage: templateFormatterFactory(userConfig ?? defaultUserConfig),
     reporterStage: bufferReporterFactory(userConfig ?? defaultUserConfig),
     transportStage: consoleTransporterFactory(userConfig ?? defaultUserConfig),

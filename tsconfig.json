@@ -55,8 +55,9 @@
   "include": ["./lib/**/*.ts"],
   "exclude": [
     "./dist/**",
+    "./lib/**/*.spec.ts",
+    "./lib/spec-setup.ts",
     "./node_modules/**",
-    "./spec/**",
     "./vite.config.ts"
   ]
 }

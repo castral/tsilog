@@ -202,11 +202,12 @@ for (const transporter of config.transporters) {
 decision is how to model the pairing in `Configuration`.
 
 **Options (pick one):**
-- [ ] **PipelineUnit model** *(recommended)* — replace flat `reporters[]` + `transporters[]` with
+- [ ] ~~**PipelineUnit model** *(recommended)* — replace flat `reporters[]` + `transporters[]` with
   `units: PipelineUnit[]` where each unit owns its reporter(s) and transporter(s). Clean type
-  safety, no accidental N×M broadcast.
-- [ ] **Flat arrays with zip** — keep flat arrays, zip reporters to transporters by index in the
-  factory. Simpler config, but fragile (mismatched lengths silently drop entries).
+  safety, no accidental N×M broadcast.~~
+- [ ] ~~**Flat arrays with zip** — keep flat arrays, zip reporters to transporters by index in the
+  factory. Simpler config, but fragile (mismatched lengths silently drop entries).~~
+- [x] Use a composable DAG model with primitives in `mapper.ts` to define logger pipeline topology in the configuration
 
 **Note:** Also needs to handle `void | Promise<void>` from transporter — bare `void transporter(...)`
 swallows async errors silently.
@@ -224,7 +225,7 @@ Blocked on T-12 and T-14 being resolved.
 
 Trivial — `(logs) => logs`. Needed before tests can assert pipeline behaviour without real side effects.
 
-- [ ] Implement no-op reporter
+- [x] Implement no-op reporter
 
 ### T-16: Implement `console.transporter.ts`
 
@@ -241,7 +242,7 @@ Should dispatch to `console.log` / `console.warn` / `console.error` based on log
 `reporters: []` and `transporters: []` are both empty arrays. The config factory produces a logger
 that does nothing end-to-end.
 
-- [ ] Populate `consoleConfig()` with `no-op.reporter` (or `cli.reporter` once it exists) and `console.transporter`
+- [x] Populate `consoleConfig()` with `no-op.reporter` (or `cli.reporter` once it exists) and `console.transporter`
 
 ### T-18: Replace spec stub with real tests
 
@@ -265,7 +266,8 @@ that does nothing end-to-end.
 `@microsoft/api-extractor` is in `devDependencies` but not referenced in any script. Either
 integrate it into `tsi:build` to produce a clean `.d.ts` rollup, or remove it.
 
-- [ ] Wire into `tsi:build` / `tsi:package`, or remove from devDependencies
+- [ ] ~~Wire into `tsi:build` / `tsi:package`, or remove from devDependencies~~
+- [x] Due to a bug in `vite-plugin-dts` I had to declare this dep and integrate it as a dynamic import in `vite.config.ts`. The dynamic import should be removed once the dts plugin supports rolling up d.ts.map files in a released build.
 
 ### T-20: Implement `pub:jsr` and `pub:npm` scripts
 
@@ -273,5 +275,5 @@ integrate it into `tsi:build` to produce a clean `.d.ts` rollup, or remove it.
 
 Both are `"tbd"`. Package exports are now correct — these just need the publish commands.
 
-- [ ] `"pub:jsr": "jsr publish"`
-- [ ] `"pub:npm": "npm publish --access public"`
+- [x] `"pub:jsr": "jsr publish"`
+- [x] `"pub:npm": "npm publish --access public"`

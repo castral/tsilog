@@ -84,9 +84,7 @@ export function chain<In, Out>(...mappers: Mapper<In, Out>[]): Mapper<In, Out>;
  * unchanged.
  */
 export function chain(...mappers: Mapper<unknown, unknown>[]): Mapper<unknown, unknown> {
-  globalThis.console.debug(`creating a chain of mappers: ${JSON.stringify(mappers)}`);
   return (input: unknown) => {
-    globalThis.console.debug(`in a mapper chain looking at ${JSON.stringify(input)}`);
     return mappers.reduce((previous, mapper) =>
       mapper(previous), input);
   };
@@ -178,9 +176,7 @@ export function chainToManyNoMemo<In, A, Out>(chain: Mapper<In, A>, chains: Mapp
  *   of the resulting values.
  */
 export function manyToChain<In, Out>(...chains: Mapper<In, Out>[]): Mapper<In, Out[]> {
-  globalThis.console.debug(`creating a manyToChain of mappers: ${JSON.stringify(chains)}`);
   return (input) => {
-    globalThis.console.debug(`inside manyToChain looking at ${JSON.stringify(input)}`);
     return chains.flatMap((branch) => branch(input));
   };
 }

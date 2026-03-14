@@ -118,7 +118,7 @@ export class EnvironmentMap implements Environment {
   #getAndCache(property: string, defaultValue: string): string;
   #getAndCache(property: string, defaultValue: boolean | string): boolean | string;
   #getAndCache(property: string, defaultValue?: boolean | string): boolean | string | undefined {
-    if (isBoolean(defaultValue) && this.isProperty(property)) {
+    if (this.isProperty(property)) {
       return this.#boolCache?.[property] ?? this.#loadFromEnv(property, defaultValue);
     }
 

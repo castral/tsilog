@@ -8,10 +8,11 @@ export interface ConsoleTransporterConfig extends UserConfig {
 // TODO: match severity
 export const consoleTransporterFactory: MapperFactory<ConsoleTransporterConfig, string[] | Promise<string[]>, void> =
   (config) => {
-    globalThis.console.debug('inside console.transporter');
     const console = config.impl ?? globalThis.console;
 
     return (logs) => {
+      globalThis.console.debug('inside console.transporter');
+
       const emitOutput = (output: string[]) => {
         output.map((log) => {
           console.log(log);

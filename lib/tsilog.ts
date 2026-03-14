@@ -4,6 +4,8 @@ import { subLoggerConfig, type TsilogConfig, type UserConfig } from './configura
 import { type Facade, type Log, SeverityCode, SeverityName, toCode } from './facade.ts';
 import { chain } from './mapper/mapper.ts';
 
+const ConfigKey = Symbol('tsilog.config');
+
 function createLogger<LogType extends Log[] = Log[], WireType = unknown[]>
   (config: TsilogConfig<LogType, WireType>): Facade {
 
@@ -22,8 +24,7 @@ function createLogger<LogType extends Log[] = Log[], WireType = unknown[]>
     const logSeverity = Enum.isValue(SeverityCode, severity)
                         ? severity
                         : toCode(severity);
-    console.debug('inside logImpl');
-    if (!config.env.isEnabled || logSeverity >= severityLimit) {
+    if (!config.env.isEnabled || logSeverity < severityLimit) {
       return logger;
     }
 
@@ -62,8 +63,6 @@ function createLogger<LogType extends Log[] = Log[], WireType = unknown[]>
 
   return logger;
 }
-
-const ConfigKey = Symbol('tsilog.config');
 
 function getConfigurationFrom<LogType extends Log[] = Log[], WireType = unknown[]>
   (logger: Facade): TsilogConfig<LogType, WireType> {

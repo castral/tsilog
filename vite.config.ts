@@ -51,6 +51,10 @@ export default defineConfig({
       include: [
         './lib/**/*.ts',
       ],
+      exclude: [
+        './lib/**/*.spec.ts',
+        './lib/spec-setup.ts'
+      ],
       enabled: true,
       provider: 'v8',
       reporter: ['html', 'json', 'text'],
@@ -61,9 +65,9 @@ export default defineConfig({
     },
 
     include: [
-      './spec/**/*.spec.ts',
+      './lib/**/*.spec.ts',
     ],
-    setupFiles: ['./spec/spec-setup.ts'],
+    setupFiles: ['./lib/spec-setup.ts'],
     environment: 'node',
     globals: true,
     passWithNoTests: false,

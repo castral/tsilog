@@ -35,6 +35,14 @@ export class Surrogate implements Log {
     this.context = new Map(log.context?.entries());
   }
 
+  public toString(): string {
+    const values = this.arguments.map((arg) => {
+      return typeof arg === 'string' ? arg : JSON.stringify(arg);
+    });
+
+    return values.join('');
+  }
+
   public applyTo(range: Range, name: AttributeName, value?: JSONPrimitive, replacement?: string): this {
     let attributes = this.attributes.get(name);
 

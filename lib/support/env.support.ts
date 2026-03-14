@@ -1,14 +1,21 @@
-/* eslint-disable unicorn/no-typeof-undefined,unicorn/no-negated-condition */
+/* eslint-disable unicorn/no-typeof-undefined */
 /// <reference types="vite/client" />
 import { Enum } from '@castral/ts-enum';
 
 export const TSILOG_ENV_PREFIX = 'TSILOG_' as const;
+export type TsilogEnvKey = `${typeof TSILOG_ENV_PREFIX}${string}`;
+
+export function makeTsilogEnvKey(key: string): TsilogEnvKey {
+  return key.startsWith(TSILOG_ENV_PREFIX)
+         ? key as TsilogEnvKey
+         : `${TSILOG_ENV_PREFIX}${key.toUpperCase()}`;
+}
 
 function isBoolean(value: unknown): value is boolean {
   return Boolean(value) === value;
 }
 
-enum EnvironmentProperty {
+export enum EnvironmentProperty {
   Asserts = 'asserts',
   Browser = 'browser',
   Bun = 'bun',
@@ -60,9 +67,9 @@ export class EnvironmentMap implements Environment {
 
   private get globals(): GlobalEnvironment {
     return this._globals ??= {
-      meta: (typeof import.meta.env !== 'undefined')
-            ? import.meta
-            : undefined,
+      meta: (typeof import.meta.env === 'undefined')
+            ? undefined
+            : import.meta,
       navigator: globalThis.navigator,
       process: (typeof globalThis.process !== 'undefined' && 'env' in globalThis.process)
                ? globalThis.process
@@ -226,10 +233,9 @@ export class EnvironmentMap implements Environment {
     return this.globals.meta?.env[value] ?? this.globals.process?.env[value];
   }
 
-  private getTsilogFlagFromEnv(property: string): boolean | undefined {
-    const prop = `${TSILOG_ENV_PREFIX}${property.toUpperCase()}`;
-    const flag = this.valueFromEnv(prop);
+  private getTsilogFlagFromEnv(key: string): boolean | undefined {
+    const flag = this.valueFromEnv(makeTsilogEnvKey(key));
 
-    return (flag !== undefined) ? flag === 'true' : undefined;
+    return (flag === undefined) ? undefined : flag === 'true';
   }
 }

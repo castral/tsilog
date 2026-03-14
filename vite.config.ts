@@ -1,6 +1,5 @@
 /// <reference types="vitest/config" />
 import { defineConfig, type Plugin as VitePlugin, type UserConfig } from 'vite';
-import viteTsConfigPaths from 'vite-tsconfig-paths';
 
 const viteDts: VitePlugin[] = [];
 try {
@@ -12,13 +11,8 @@ try {
   console.error('Failed to load unplugin-dts/vite', e);
 }
 
-export default defineConfig({
+const config: UserConfig = defineConfig({
   plugins: [
-    viteTsConfigPaths({
-      projects: [
-        './tsconfig.json',
-      ],
-    }),
     ...viteDts,
   ],
 
@@ -32,11 +26,10 @@ export default defineConfig({
       formats: ['es'],
       fileName: () => 'index.js',
     },
-    rollupOptions: {
+    rolldownOptions: {
       output: {
         esModule: true,
         format: 'esm',
-        strict: true,
       },
     },
   },
@@ -80,4 +73,6 @@ export default defineConfig({
     slowTestThreshold: 1000,
     watch: false,
   },
-}) satisfies UserConfig as UserConfig;
+});
+
+export default config;

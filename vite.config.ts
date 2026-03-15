@@ -1,6 +1,8 @@
 /// <reference types="vitest/config" />
 import { defineConfig, type Plugin as VitePlugin, type UserConfig } from 'vite';
 
+// TODO: differentiate between a dev build with maps and a minified, mapless prod build
+
 const viteDts: VitePlugin[] = [];
 try {
   // @ts-ignore

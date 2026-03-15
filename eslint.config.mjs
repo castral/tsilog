@@ -8,6 +8,7 @@ import stylistic from '@stylistic/eslint-plugin'
 import tsEslint from 'typescript-eslint';
 import unicorn from 'eslint-plugin-unicorn';
 import globals from 'globals';
+import vitest from '@vitest/eslint-plugin';
 import { createTypeScriptImportResolver } from "eslint-import-resolver-typescript";
 
 export default defineConfig([
@@ -81,7 +82,7 @@ export default defineConfig([
 
     rules: {
       curly: ['error', 'all'],
-      'default-case': 'error',
+      'default-case': ['error', { commentPattern: '^no default.*$'}],
       eqeqeq: ['error', 'always', { null: 'ignore' }],
       'no-cond-assign': ['error', 'always'],
       'no-duplicate-case': 'error',
@@ -280,7 +281,23 @@ export default defineConfig([
   {
     name: 'All Library Test Files',
 
-    files: ['spec/**/*.spec.ts'],
+    files: ['lib/**/*.spec.ts'],
+
+    plugins: {
+      vitest,
+    },
+
+    settings: {
+      vitest: {
+        typecheck: true,
+      },
+    },
+
+    languageOptions: {
+      globals: {
+        ...vitest.environments.env.globals,
+      },
+    },
 
     rules: {
       '@typescript-eslint/await-thenable': 'off',
@@ -294,7 +311,58 @@ export default defineConfig([
       '@typescript-eslint/unbound-method': 'off',
 
       'unicorn/import-style': 'off',
-    }
+
+      ...vitest.configs.recommended.rules,
+      'vitest/consistent-test-filename': ['error', { pattern: '^.+\\.spec\\.ts$' }],
+      'vitest/consistent-test-it': ['error', { fn: 'it', withinDescribe: 'it' }],
+      'vitest/consistent-vitest-vi': ['error', { fn: 'vi' }],
+      'vitest/hoisted-apis-on-top': 'error',
+      'vitest/max-nested-describe': ['error', { max: 2 }],
+      'vitest/no-alias-methods': 'error',
+      'vitest/no-conditional-in-test': 'error',
+      'vitest/no-conditional-tests': 'error',
+      'vitest/no-duplicate-hooks': 'error',
+      'vitest/no-test-prefixes': 'error',
+      'vitest/no-test-return-statement': 'error',
+      'vitest/padding-around-all': 'error',
+      'vitest/prefer-called-with': 'error',
+      'vitest/prefer-comparison-matcher': 'error',
+      'vitest/prefer-equality-matcher': 'error',
+      'vitest/prefer-expect-assertions': 'error',
+      'vitest/prefer-expect-resolves': 'error',
+      'vitest/prefer-expect-type-of': 'error',
+      'vitest/prefer-hooks-in-order': 'error',
+      'vitest/prefer-hooks-on-top': 'error',
+      'vitest/prefer-import-in-mock': 'error',
+      'vitest/prefer-importing-vitest-globals': 'error',
+      'vitest/prefer-lowercase-title': ['error', {
+        ignoreTopLevelDescribe: true,
+        lowercaseFirstCharacterOnly: true,
+      }],
+      'vitest/prefer-mock-promise-shorthand': 'error',
+      'vitest/prefer-mock-return-shorthand': 'error',
+      'vitest/prefer-snapshot-hint': 'error',
+      'vitest/prefer-spy-on': 'error',
+      'vitest/prefer-strict-boolean-matchers': 'error',
+      'vitest/prefer-strict-equal': 'error',
+      'vitest/prefer-to-have-been-called-times': 'error',
+      'vitest/prefer-to-have-length': 'error',
+      'vitest/prefer-todo': 'error',
+      'vitest/prefer-vi-mocked': 'error',
+      'vitest/require-hook': 'error',
+      'vitest/require-mock-type-parameters': 'error',
+      'vitest/require-top-level-describe': ['error', {
+        maxNumberOfTopLevelDescribes: 1,
+      }],
+      'vitest/valid-title': ['error', {
+        ignoreTypeOfDescribeName: false,
+        allowArguments: false,
+        mustMatch: {
+          it: '^should .+$',
+        },
+      }],
+      'vitest/warn-todo': 'warn',
+    },
   },
   {
     name: 'Library Package.json File',

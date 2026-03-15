@@ -1,4 +1,3 @@
-/* eslint-disable unicorn/no-typeof-undefined */
 /// <reference types="vite/client" />
 import { Enum } from '@castral/ts-enum';
 
@@ -9,10 +8,6 @@ export function makeTsilogEnvKey(key: string): TsilogEnvKey {
   return key.startsWith(TSILOG_ENV_PREFIX)
          ? key as TsilogEnvKey
          : `${TSILOG_ENV_PREFIX}${key.toUpperCase()}`;
-}
-
-function isBoolean(value: unknown): value is boolean {
-  return Boolean(value) === value;
 }
 
 export enum EnvironmentProperty {
@@ -30,17 +25,19 @@ export enum EnvironmentProperty {
 }
 
 interface EnvFacade {
-  env: Record<string, string | undefined>;
+  env?: Record<string, string | undefined>;
 }
 
 interface Versions {
-  versions: Record<string, string | undefined> | undefined;
+  versions?: Record<string, string | undefined>;
 }
 
 interface GlobalEnvironment {
-  meta: EnvFacade | undefined;
-  navigator: Navigator | WorkerNavigator | undefined;
-  process: (EnvFacade & Versions) | undefined;
+  document?: Document;
+  meta?: EnvFacade;
+  navigator?: Navigator | WorkerNavigator;
+  process?: EnvFacade & Versions;
+  window?: Window & typeof globalThis;
 }
 
 export interface Environment {
@@ -60,20 +57,30 @@ export interface Environment {
 }
 
 export class EnvironmentMap implements Environment {
-  private readonly isProperty = Enum.createIsValueGuard(EnvironmentProperty);
+  private static defaultFlags = {
+    asserts: true,
+    browser: false,
+    bun: false,
+    ci: false,
+    debug: false,
+    deno: false,
+    enabled: true,
+    node: false,
+    production: false,
+    test: false,
+    worker: false,
+  };
   private _globals: GlobalEnvironment | undefined;
   #boolCache: Record<EnvironmentProperty, boolean> | undefined;
   #strCache: Map<string, boolean | string> = new Map();
 
   private get globals(): GlobalEnvironment {
     return this._globals ??= {
-      meta: (typeof import.meta.env === 'undefined')
-            ? undefined
-            : import.meta,
+      document: globalThis.document,
+      meta: import.meta,
       navigator: globalThis.navigator,
-      process: (typeof globalThis.process !== 'undefined' && 'env' in globalThis.process)
-               ? globalThis.process
-               : undefined,
+      process: globalThis.process,
+      window: globalThis.window,
     };
   }
 
@@ -121,35 +128,10 @@ export class EnvironmentMap implements Environment {
     return this.#getAndCache(EnvironmentProperty.Worker);
   }
 
-  #getAndCache(property: EnvironmentProperty): boolean;
-  #getAndCache(property: string, defaultValue: string): string;
-  #getAndCache(property: string, defaultValue: boolean | string): boolean | string;
-  #getAndCache(property: string, defaultValue?: boolean | string): boolean | string | undefined {
-    if (this.isProperty(property)) {
-      return this.#boolCache?.[property] ?? this.#loadFromEnv(property, defaultValue);
-    }
-
-    return this.get(property) ?? defaultValue;
-  }
-
-  #loadFromEnv(key: EnvironmentProperty): boolean;
-  #loadFromEnv(key: string, defaultValue: boolean): boolean;
-  #loadFromEnv(key: string, defaultValue: string): string;
-  #loadFromEnv(key: string, defaultValue?: boolean | string): boolean | string | undefined;
-  #loadFromEnv(key: string, defaultValue?: boolean | string): boolean | string | undefined {
+  #getAndCache(key: EnvironmentProperty): boolean {
     if (this.#boolCache === undefined) {
       const flags: Record<EnvironmentProperty, boolean> = {
-        asserts: true,
-        browser: false,
-        bun: false,
-        ci: false,
-        debug: false,
-        deno: false,
-        enabled: true,
-        node: false,
-        production: false,
-        test: false,
-        worker: false,
+        ...EnvironmentMap.defaultFlags,
       };
 
       for (const property of Enum.values(EnvironmentProperty)) {
@@ -159,7 +141,7 @@ export class EnvironmentMap implements Environment {
             break;
           }
           case EnvironmentProperty.Browser: {
-            flags[property] = typeof globalThis.window !== 'undefined' && typeof globalThis.document !== 'undefined';
+            flags[property] = this.globals.window !== undefined && this.globals.document !== undefined;
             break;
           }
           case EnvironmentProperty.Bun: {
@@ -200,22 +182,14 @@ export class EnvironmentMap implements Environment {
               || (this.globals.navigator?.userAgent.includes('Cloudflare-Workers') ?? false);
             break;
           }
-          default: {
-            break;
-          }
+          // no default (enum is exhaustive)
         }
       }
 
       this.#boolCache = flags;
-
-      if (this.isProperty(key)) {
-        return flags[key];
-      }
     }
 
-    const value = this.get(key);
-
-    return isBoolean(defaultValue) ? value === 'true' : value;
+    return this.#boolCache[key];
   }
 
   public get(key: string): boolean | string | undefined {
@@ -230,7 +204,7 @@ export class EnvironmentMap implements Environment {
   }
 
   private valueFromEnv(value: string): string | undefined {
-    return this.globals.meta?.env[value] ?? this.globals.process?.env[value];
+    return this.globals.meta?.env?.[value] ?? this.globals.process?.env?.[value];
   }
 
   private getTsilogFlagFromEnv(key: string): boolean | undefined {

@@ -1,6 +1,6 @@
 {
   "name": "tsilog",
-  "version": "1.0.0",
+  "version": "1.0.0-prerelease+do-not-use",
   "description": "Tasty logging for tasty TypeScript projects. Pronounced 'see-log'",
   "keywords": [
     "consola",
@@ -42,7 +42,7 @@
     "./dist/index.d.ts.map"
   ],
   "scripts": {
-    "chk:coverage": "pnpm run tsi:build && vitest --run --coverage.enabled=false --pool=threads",
+    "chk:coverage": "pnpm run tsi:build && vitest --run --coverage.enabled=true --pool=threads",
     "chk:lint": "eslint . --cache --concurrency=off",
     "chk:typecheck": "tsc --noEmit --project tsconfig.json",
     "prepare": "husky",
@@ -63,6 +63,7 @@
     "@stylistic/eslint-plugin": "5.8.0",
     "@types/node": "catalog:",
     "@vitest/coverage-v8": "4.1.0",
+    "@vitest/eslint-plugin": "1.6.12",
     "eslint": "9.39.3",
     "eslint-import-resolver-typescript": "4.4.4",
     "eslint-plugin-import-x": "4.16.1",

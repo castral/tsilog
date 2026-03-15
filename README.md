@@ -10,6 +10,8 @@
 [![forthebadge](https://forthebadge.com/badges/made-with-typescript.svg)](https://www.typescriptlang.org)
 [![forthebadge](https://forthebadge.com/badges/license-mit.svg)](https://github.com/castral/tsilog/blob/main/LICENSE)
 
+<img align="right" src="/assets/logo.png">
+
 ### Overview
 
 Currently a WIP but feel free to poke around while I work on it.

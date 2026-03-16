@@ -1,4 +1,6 @@
-export * from './configuration.ts';
+export * from './configuration/feature.config.ts';
+export * from './configuration/premade.config.ts';
+export * from './configuration/tsilog.config.ts';
 export * from './facade.ts';
 export * from './formatter/formatter.ts';
 export * from './mapper/mapper.ts';

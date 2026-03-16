@@ -19,6 +19,7 @@ export default defineConfig([
     '**/*.d.ts',
     'coverage/*',
     'dist/*',
+    'integration/*',
     'node_modules/*',
   ]),
   stylistic.configs['disable-legacy'],
@@ -54,7 +55,7 @@ export default defineConfig([
 
       parserOptions: {
         project: [
-          './tsconfig.json',
+          './tsconfig.dev.json',
           './tsconfig.spec.json',
         ],
       }
@@ -67,7 +68,7 @@ export default defineConfig([
       'import-x/resolver-next': [
         createTypeScriptImportResolver({
           project: [
-            './tsconfig.json',
+            './tsconfig.dev.json',
             './tsconfig.spec.json',
           ],
           noWarnOnMultipleProjects: true,
@@ -334,7 +335,7 @@ export default defineConfig([
       'vitest/prefer-hooks-in-order': 'error',
       'vitest/prefer-hooks-on-top': 'error',
       'vitest/prefer-import-in-mock': 'error',
-      'vitest/prefer-importing-vitest-globals': 'error',
+      'vitest/prefer-importing-vitest-globals': 'off', // BUG: https://github.com/vitest-dev/eslint-plugin-vitest/issues/864
       'vitest/prefer-lowercase-title': ['error', {
         ignoreTopLevelDescribe: true,
         lowercaseFirstCharacterOnly: true,

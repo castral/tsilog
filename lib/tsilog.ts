@@ -1,6 +1,6 @@
 import { Enum } from '@castral/ts-enum';
 
-import { subLoggerConfig, type TsilogConfig, type UserConfig } from './configuration.ts';
+import { createSubTsilogConfig, type TsilogConfig, type UserConfig } from './configuration/tsilog.config.ts';
 import { type Facade, type Log, SeverityCode, SeverityName, toCode } from './facade.ts';
 import { chain } from './mapper/mapper.ts';
 
@@ -84,7 +84,7 @@ export function tsilog<LogType extends Log[] = Log[], WireType = unknown[]>
 
   // create a subLogger
   const [config, parent] = args;
-  const subConfig = subLoggerConfig(getConfigurationFrom(parent), config);
+  const subConfig = createSubTsilogConfig(getConfigurationFrom(parent), config);
 
   return createLogger(subConfig);
 }

@@ -42,17 +42,17 @@
     "./dist/index.d.ts.map"
   ],
   "scripts": {
-    "chk:coverage": "pnpm run tsi:build && vitest --run --coverage.enabled=true --pool=threads",
+    "chk:coverage": "vitest --run --coverage.enabled=true --pool=threads",
     "chk:lint": "eslint . --cache --concurrency=off",
-    "chk:typecheck": "tsc --noEmit --project tsconfig.json",
+    "chk:typecheck": "tsc --noEmit --project tsconfig.prod.json",
+    "dev:build": "tsc --project tsconfig.dev.json && vite build --mode development",
+    "dev:clean": "rimraf -v dist node_modules coverage .eslintcache types pnpm-lock.yaml && pnpm install",
+    "dev:test": "tsc --project tsconfig.spec.json && vitest --pool=threads --run --coverage.enabled=false",
     "prepare": "husky",
     "pub:jsr": "jsr publish",
     "pub:npm": "npm publish --access public",
-    "tsi:build": "tsc --build --verbose && vite build",
-    "tsi:clean": "rimraf -v dist node_modules coverage .eslintcache types pnpm-lock.yaml && pnpm install",
-    "tsi:package": "pnpm run tsi:verify && vite build",
-    "tsi:release": "pnpm run tsi:package && pnpm run '/^pub:.+/'",
-    "tsi:test": "tsc --project tsconfig.spec.json && vitest --pool=threads --run --coverage.enabled=false",
+    "tsi:build": "pnpm run tsi:verify && vite build --mode production",
+    "tsi:release": "pnpm run tsi:build && pnpm run \"/^pub:.+/\"",
     "tsi:verify": "pnpm run \"/^chk:.+/\""
   },
   "dependencies": {

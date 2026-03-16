@@ -1,21 +1,31 @@
-import type { UserConfig } from '../configuration.ts';
 import type { MapperFactory } from '../mapper/mapper.ts';
 
-export interface ConsoleTransporterConfig extends UserConfig {
-  impl?: Console;
+import {
+  BuiltinFeature,
+  featureConfig,
+  featureEnabled,
+} from '../configuration/feature.config.ts';
+import { type UserConfig } from '../configuration/tsilog.config.ts';
+
+export interface ConsoleFeature {
+  console?: globalThis.Console;
 }
 
 // TODO: match severity
-export const consoleTransporterFactory: MapperFactory<ConsoleTransporterConfig, string[] | Promise<string[]>, void> =
+export const consoleTransporterFactory: MapperFactory<UserConfig, string[] | Promise<string[]>, void> =
   (config) => {
-    const console = config.impl ?? globalThis.console;
+    const feature = featureConfig<ConsoleFeature>(BuiltinFeature.Console, config);
+    const enabled = feature === undefined ? true : featureEnabled(feature) ?? true;
+    const consoleImpl = feature?.console ?? globalThis.console;
 
     return (logs) => {
-      globalThis.console.debug('inside console.transporter');
+      if (!enabled) {
+        return;
+      }
 
       const emitOutput = (output: string[]) => {
         output.map((log) => {
-          console.log(log);
+          consoleImpl.log(log);
         });
       };
 
@@ -23,7 +33,7 @@ export const consoleTransporterFactory: MapperFactory<ConsoleTransporterConfig, 
         logs.then((output) => {
           emitOutput(output);
         }).catch((error: unknown) => {
-          console.error(error);
+          consoleImpl.error(error);
         });
       } else {
         emitOutput(logs);

@@ -4,7 +4,9 @@
 // range = [prefix.length, replacement.length]
 // string.applyTo(range, Record<Attribute, Value>)
 
-import { type JSONPrimitive, type Log, SeverityCode, SeverityName } from '../facade.ts';
+// csharp style padding in the placeholder is `{index[,width][:formatString]}`
+
+import { type JSONPrimitive, type Log, SeverityCode, SeverityName } from '../../facade.ts';
 
 export enum AttributeName {
   Background = 'background',
@@ -21,6 +23,7 @@ export interface Attribute {
 }
 
 export class Surrogate implements Log {
+  private static readonly _idMatcher = /[a-z_][\w-]*/i;
   private readonly attributes = new Map<AttributeName, Attribute[]>();
 
   public readonly severity: SeverityCode | SeverityName;
@@ -40,7 +43,7 @@ export class Surrogate implements Log {
       return typeof arg === 'string' ? arg : JSON.stringify(arg);
     });
 
-    return values.join('');
+    return values.join(', ');
   }
 
   public applyTo(range: Range, name: AttributeName, value?: JSONPrimitive, replacement?: string): this {

@@ -1,8 +1,10 @@
 {
-  "extends": "./tsconfig.json",
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "composite": false,
     "incremental": false,
+    "isolatedDeclarations": false,
+    "isolatedModules": false,
     "noEmit": true,
   },
   "include": [
@@ -11,12 +13,7 @@
   ],
   "references": [
     {
-      "path": "."
+      "path": "./tsconfig.dev.json"
     }
-  ],
-  "exclude": [
-    "dist",
-    "node_modules",
-    "./vite.config.ts"
   ],
 }

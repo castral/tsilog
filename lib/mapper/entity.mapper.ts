@@ -1,4 +1,4 @@
-import type { UserConfig } from '../configuration.ts';
+import type { UserConfig } from '../configuration/tsilog.config.ts';
 import type { MapperFactory } from './mapper.ts';
 
 import { isCode, isName, type Log, SeverityCode } from '../facade.ts';

@@ -359,7 +359,7 @@ export default defineConfig([
         ignoreTypeOfDescribeName: false,
         allowArguments: false,
         mustMatch: {
-          it: '^should .+$',
+          it: '^should(?:n\'t|\\s).+$',
         },
       }],
       'vitest/warn-todo': 'warn',

@@ -5,8 +5,11 @@ import type { Formatter } from './formatter.ts';
 
 import { Surrogate } from '../support/string/template.support.ts';
 
-export const templateFormatterFactory: MapperFactory<UserConfig, Log[], Surrogate[]> =
-  (_config): Formatter<Surrogate[]> => {
+export interface TemplateFeature {
+  placeholder?: string;
+}
+
+export const templateFormatterFactory: MapperFactory<UserConfig, Log[], Log[]> = (_config): Formatter => {
     return (logs) => {
       console.debug('inside template.formatter');
 

@@ -1,50 +1,45 @@
 import { Enum } from '@castral/ts-enum';
 
-import { createSubTsilogConfig, type TsilogConfig, type UserConfig } from './configuration/tsilog.config.ts';
-import { type Facade, type Log, SeverityCode, SeverityName, toCode } from './facade.ts';
-import { chain } from './mapper/mapper.ts';
+import {
+  createSubTsilogConfig,
+  isTsilogConfig,
+  type TsilogConfig,
+  type UserConfig,
+} from './configuration/tsilog.config.ts';
+import { type Facade, SeverityCode, SeverityName, toCode } from './facade.ts';
 
 const ConfigKey = Symbol('tsilog.config');
 
-function createLogger<LogType extends Log[] = Log[], WireType = unknown[]>
-  (config: TsilogConfig<LogType, WireType>): Facade {
-
-  const pipeline = chain(
-    config.mapperStage,
-    config.formatterStage,
-    config.reporterStage,
-    config.transportStage,
-  );
+function createLogger(config: TsilogConfig): Facade {
 
   const severityLimit = Enum.isValue(SeverityCode, config.severityLimit)
                         ? config.severityLimit
                         : toCode(config.severityLimit);
 
-  const logImpl = (severity: SeverityCode | SeverityName, ...args: unknown[]): Facade => {
-    const logSeverity = Enum.isValue(SeverityCode, severity)
-                        ? severity
-                        : toCode(severity);
+  const logImpl = (severity: SeverityName, ...args: unknown[]): Facade => {
+    const logSeverity = toCode(severity);
     if (!config.env.isEnabled || logSeverity < severityLimit) {
       return logger;
     }
 
-    const result = pipeline([severity, ...args]);
+    const _result = config.flume([severity, ...args]);
 
-    if (result instanceof Promise) {
-      result.then(() => {
-        console.debug('async logImpl finished');
-      }).catch((error: unknown) => {
-        console.error(error);
-      });
-    }
+    // TODO: When async transport is ready:
+    // if (result instanceof Promise) {
+    //   result.then(() => {
+    //     globalThis.console.debug('async logImpl finished');
+    //   }).catch((error: unknown) => {
+    //     globalThis.console.error(error);
+    //   });
+    // }
 
-    console.debug('sync logImpl finished');
+    globalThis.console.debug('sync logImpl finished');
 
     return logger;
   };
 
-  const addSeverityFacades = (severities: SeverityName[] = Enum.values(SeverityName),
-                              logger: Facade = {} as Facade): Facade => {
+  const addSeverityFacades = (severities: SeverityName[] = Enum.values(SeverityName), logger: Facade = {} as Facade): Facade => {
+
     const severity = severities.shift();
     if (severity === undefined) {
       return logger;
@@ -64,16 +59,21 @@ function createLogger<LogType extends Log[] = Log[], WireType = unknown[]>
   return logger;
 }
 
-function getConfigurationFrom<LogType extends Log[] = Log[], WireType = unknown[]>
-  (logger: Facade): TsilogConfig<LogType, WireType> {
-
-  // ConfigKey is guaranteed to be defined on a Facade
-  return logger[ConfigKey] as TsilogConfig<LogType, WireType>;
+function getConfigurationFrom(logger: Facade): TsilogConfig {
+  const config = logger[ConfigKey];
+  return isTsilogConfig(config)
+         ? config
+         : throwInvalidConfig(config);
 }
 
-export function tsilog<LogType extends Log[] = Log[], WireType = unknown[]>
+// TODO: Introduce our own Error subtype
+function throwInvalidConfig(c: unknown): never {
+  throw new TypeError(`Invalid Config ${JSON.stringify(c)}`);
+}
+
+export function tsilog
   (...args:
-     | [config: TsilogConfig<LogType, WireType>]
+     | [config: TsilogConfig]
      | [config: UserConfig, parent: Facade]
   ): Facade {
 

@@ -1,10 +1,11 @@
-import type { Formatter } from '../formatter/formatter.ts';
-import type { Reporter } from '../reporter/reporter.ts';
-import type { Transporter } from '../transporter/transporter.ts';
-
-import { type Log, SeverityCode, type SeverityName } from '../facade.ts';
-import { type Mapper } from '../mapper/mapper.ts';
-import { type Environment } from '../support/env.support.ts';
+import { SeverityCode, type SeverityName } from '../facade.ts';
+import { templateFormatterFactory } from '../formatter/template.formatter.ts';
+import { entityMapperFactory } from '../mapper/entity.mapper.ts';
+import { chain, type Mapper } from '../mapper/mapper.ts';
+import { metaMapperFactory } from '../mapper/meta.mapper.ts';
+import { bufferReporterFactory } from '../reporter/buffer.reporter.ts';
+import { type Environment, EnvironmentMap } from '../support/env.support.ts';
+import { consoleTransporterFactory } from '../transporter/console.transporter.ts';
 import { BuiltinFeature, type FeatureSettings } from './feature.config.ts';
 
 const isConfigKey = Symbol('tsilog.isConfig');
@@ -33,42 +34,43 @@ export const defaultUserConfig: Required<UserConfig> = {
 };
 
 // This is a concrete representation of any complete logger configuration
-export interface TsilogConfig<
-  LogType extends Log[] = Log[],
-  WireType = string[],
-> extends Required<UserConfig>, Record<symbol, unknown> {
+export interface TsilogConfig extends Required<UserConfig>, Record<symbol, unknown> {
 
   env: Environment;
 
-  // The mapper chain that defines a tsilog instance:
-  // reason: log a val -> pick a format  -> when/how to emit val -> emit val as side effect
-  // input:  unknown[] -> Log[] (in rep) -> LogType[] (out rep)  -> WireType[] (out literal)
-  // stage:   Mapper   ->  Formatter[]   ->     Reporter[]       ->      Transporter[]
-  // output:   Log[]   ->   LogType[]    -> Promise<WireType[]>  ->      Promise<void>
-  mapperStage: Mapper<unknown[], Log[]>;
-  formatterStage: Formatter<LogType>;
-  reporterStage: Reporter<LogType, WireType>;
-  transportStage: Transporter<WireType>;
-
   isSubLogger: boolean;
+
+  flume: Mapper<unknown[], void | Promise<void>>;
 }
 
-export function createTsilogConfig<LogType extends Log[] = Log[], WireType = unknown[]>(
-  config: Omit<TsilogConfig<LogType, WireType>, 'isSubLogger' | symbol>,
-): TsilogConfig<LogType, WireType> {
+export function createTsilogConfig(
+  config: Omit<TsilogConfig, 'env' | 'flume' | 'isSubLogger' | symbol>,
+  userFlume?: Pick<TsilogConfig, 'flume'>,
+): TsilogConfig {
+
+  const tsilogConfig = {
+    ...config,
+
+    env: new EnvironmentMap(),
+
+    isSubLogger: false,
+    [isConfigKey]: true,
+  };
 
   return {
-    [isConfigKey]: true,
+    ...tsilogConfig,
 
-    ...config,
-    isSubLogger: false,
+    flume: userFlume?.flume ?? chain(
+      entityMapperFactory(tsilogConfig),
+      metaMapperFactory(tsilogConfig),
+      templateFormatterFactory(tsilogConfig),
+      bufferReporterFactory(tsilogConfig),
+      consoleTransporterFactory(tsilogConfig),
+    ),
   };
 }
 
-export function createSubTsilogConfig<LogType extends Log[] = Log[], WireType = unknown[]>(
-  parent: TsilogConfig<LogType, WireType>,
-  subConfig?: UserConfig,
-): TsilogConfig<LogType, WireType> {
+export function createSubTsilogConfig(parent: TsilogConfig, subConfig?: UserConfig): TsilogConfig {
 
   const separator = subConfig?.nameSeparator ?? defaultUserConfig.nameSeparator;
   const subName = subConfig?.name ?? `sub${defaultUserConfig.name}`;
@@ -84,9 +86,7 @@ export function createSubTsilogConfig<LogType extends Log[] = Log[], WireType = 
   };
 }
 
-export function isTsilogConfig<LogType extends Log[] = Log[], WireType = unknown[]>
-(value: unknown): value is TsilogConfig<LogType, WireType> {
-
+export function isTsilogConfig(value: unknown): value is TsilogConfig {
   return value != null &&
     typeof value === 'object' &&
     isConfigKey in value &&

@@ -1,5 +1,5 @@
-import { describe, it, vi } from 'vitest';
+import { describe, it } from 'vitest';
 
 describe('entity.mapper', () => {
-  it.todo('should ');
+  it.todo('should work');
 });

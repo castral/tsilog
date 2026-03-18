@@ -6,26 +6,32 @@ import {
   featureEnabled,
 } from '../configuration/feature.config.ts';
 import { type UserConfig } from '../configuration/tsilog.config.ts';
+import { type Log, isCode, SeverityName, toName } from '../facade.ts';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ConsoleImpl = Record<SeverityName, (...args: any[]) => void>;
 
 export interface ConsoleFeature {
-  console?: globalThis.Console;
+  console?: ConsoleImpl;
 }
 
-// TODO: match severity
-export const consoleTransporterFactory: MapperFactory<UserConfig, string[] | Promise<string[]>, void> =
+export const consoleTransporterFactory: MapperFactory<UserConfig, Log[] | Promise<Log[]>, void> =
   (config) => {
     const feature = featureConfig<ConsoleFeature>(BuiltinFeature.Console, config);
     const enabled = feature === undefined ? true : featureEnabled(feature) ?? true;
-    const consoleImpl = feature?.console ?? globalThis.console;
+    const consoleImpl: ConsoleImpl = feature?.console ?? globalThis.console;
 
     return (logs) => {
       if (!enabled) {
+        globalThis.console.debug('console transporter disabled');
         return;
       }
 
-      const emitOutput = (output: string[]) => {
+      const emitOutput = (output: Log[]) => {
         output.map((log) => {
-          consoleImpl.log(log);
+          consoleImpl[isCode(log.severity)
+                      ? toName(log.severity)
+                      : log.severity](...log.arguments);
         });
       };
 
@@ -33,7 +39,7 @@ export const consoleTransporterFactory: MapperFactory<UserConfig, string[] | Pro
         logs.then((output) => {
           emitOutput(output);
         }).catch((error: unknown) => {
-          consoleImpl.error(error);
+          globalThis.console.error('Error encountered', error);
         });
       } else {
         emitOutput(logs);

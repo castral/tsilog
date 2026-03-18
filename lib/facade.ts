@@ -5,7 +5,6 @@ export enum SeverityName {
   INFO = 'info',
   WARN = 'warn',
   ERROR = 'error',
-  FATAL = 'fatal',
 }
 
 export enum SeverityCode {
@@ -14,7 +13,6 @@ export enum SeverityCode {
   info,
   warn,
   error,
-  fatal,
 }
 
 export const SeverityMap: Readonly<Record<SeverityName, SeverityCode>
@@ -24,13 +22,11 @@ export const SeverityMap: Readonly<Record<SeverityName, SeverityCode>
   [SeverityName.INFO]:  SeverityCode.info,
   [SeverityName.WARN]:  SeverityCode.warn,
   [SeverityName.ERROR]: SeverityCode.error,
-  [SeverityName.FATAL]: SeverityCode.fatal,
   [SeverityCode.trace]: SeverityName.TRACE,
   [SeverityCode.debug]: SeverityName.DEBUG,
   [SeverityCode.info]:  SeverityName.INFO,
   [SeverityCode.warn]:  SeverityName.WARN,
   [SeverityCode.error]: SeverityName.ERROR,
-  [SeverityCode.fatal]: SeverityName.FATAL,
 } as const);
 
 export function isCode(value: unknown): value is SeverityCode {
@@ -38,7 +34,7 @@ export function isCode(value: unknown): value is SeverityCode {
     !Number.isNaN(value) &&
     Number.isFinite(value) &&
     value >= SeverityCode.trace &&
-    value <= SeverityCode.fatal;
+    value <= SeverityCode.error;
 }
 
 export function isName(value: unknown): value is SeverityName {
@@ -47,8 +43,7 @@ export function isName(value: unknown): value is SeverityName {
     value === SeverityName.DEBUG ||
     value === SeverityName.INFO ||
     value === SeverityName.WARN ||
-    value === SeverityName.ERROR ||
-    value === SeverityName.FATAL
+    value === SeverityName.ERROR
   );
 }
 

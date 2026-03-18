@@ -44,16 +44,17 @@
   "scripts": {
     "chk:coverage": "vitest --run --coverage.enabled=true --pool=threads",
     "chk:lint": "eslint . --cache --concurrency=off",
-    "chk:typecheck": "tsc --noEmit --project tsconfig.prod.json",
+    "chk:type": "tsc --noEmit --project tsconfig.prod.json",
     "dev:build": "tsc --project tsconfig.dev.json && vite build --mode development",
     "dev:clean": "rimraf -v dist node_modules coverage .eslintcache types pnpm-lock.yaml && pnpm install",
     "dev:test": "tsc --project tsconfig.spec.json && vitest --pool=threads --run --coverage.enabled=false",
     "prepare": "husky",
     "pub:jsr": "jsr publish",
     "pub:npm": "npm publish --access public",
-    "tsi:build": "pnpm run tsi:verify && vite build --mode production",
-    "tsi:release": "pnpm run tsi:build && pnpm run \"/^pub:.+/\"",
-    "tsi:verify": "pnpm run \"/^chk:.+/\""
+    "tsi:build": "vite build --mode production",
+    "tsi:clean": "rimraf -v dist",
+    "tsi:release": "pnpm run tsi:clean && pnpm run tsi:verify && pnpm run \"/^pub:.+/\"",
+    "tsi:verify": "pnpm run tsi:build && pnpm run \"/^chk:.+/\""
   },
   "dependencies": {
     "@castral/ts-enum": "1.1.0"

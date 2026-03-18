@@ -1,5 +1,5 @@
-import { describe, it, vi } from 'vitest';
+import { describe, it } from 'vitest';
 
 describe('fetch.transporter', () => {
-  it.todo('should ');
+  it.todo('should work');
 });

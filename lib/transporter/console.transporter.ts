@@ -2,8 +2,8 @@ import type { MapperFactory } from '../mapper/mapper.ts';
 
 import {
   BuiltinFeature,
-  featureConfig,
-  featureEnabled,
+  featureConfigFromConfig,
+  isFeatureEnabled,
 } from '../configuration/feature.config.ts';
 import { type UserConfig } from '../configuration/tsilog.config.ts';
 import { type Log, isCode, SeverityName, toName } from '../facade.ts';
@@ -17,8 +17,8 @@ export interface ConsoleFeature {
 
 export const consoleTransporterFactory: MapperFactory<UserConfig, Log[] | Promise<Log[]>, void> =
   (config) => {
-    const feature = featureConfig<ConsoleFeature>(BuiltinFeature.Console, config);
-    const enabled = feature === undefined ? true : featureEnabled(feature) ?? true;
+    const feature = featureConfigFromConfig<ConsoleFeature>(BuiltinFeature.Console, config);
+    const enabled = feature === undefined ? true : isFeatureEnabled(BuiltinFeature.Console, config) ?? true;
     const consoleImpl: ConsoleImpl = feature?.console ?? globalThis.console;
 
     return (logs) => {

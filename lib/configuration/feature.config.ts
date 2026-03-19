@@ -18,18 +18,15 @@ type FeatureValue<T> = T extends object ? T[keyof T] : T;
 
 export type FeatureEnabled = 'disabled' | 'enabled' | boolean;
 
-export type FeatureConfig<
-  T = unknown,
-  Feature extends Record<FeatureKey<T>, FeatureValue<T> | undefined> = Record<FeatureKey<T>, FeatureValue<T> | undefined>,
-> = Feature & {
-  enabled?: boolean;
-};
+export type FeatureConfig<T = unknown> = {
+  enabled?: FeatureEnabled;
+} & Record<FeatureKey<T>, FeatureValue<T>>;
 
 export type Feature<T> = FeatureConfig<T> | FeatureEnabled;
 
 export type FeatureSettings<T = unknown> = Record<BuiltinFeature, Feature<T>>;
 
-export function featureConfig<T>
+export function featureConfigFromConfig<T>
 (featureName: BuiltinFeature,
  config: Pick<UserConfig, 'features'>): FeatureConfig<T> | undefined {
 
@@ -39,16 +36,15 @@ export function featureConfig<T>
          : undefined;
 }
 
-export function featureEnabled<T>(feature: Feature<T>): boolean | undefined {
+export function isFeatureEnabled(featureName: BuiltinFeature, config: Pick<UserConfig, 'features'>): boolean | undefined {
+  const feature = config.features?.[featureName];
   return typeof feature === 'string'
          ? feature === 'enabled'
          : typeof feature === 'boolean'
            ? feature
            : typeof feature === 'object' && 'enabled' in feature
-             ? feature.enabled
+             ? typeof feature.enabled === 'string'
+               ? feature.enabled === 'enabled'
+               : feature.enabled
              : undefined;
-}
-
-export function featureGet<T>(from: Feature<T>, key: FeatureKey<T>): FeatureValue<T> | undefined {
-  return typeof from === 'object' ? from[key] : undefined;
 }

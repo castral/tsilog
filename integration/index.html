@@ -1,0 +1,45 @@
+<html>
+<head>
+  <title>Hello World</title>
+  <script lang="javascript">
+class MyClass extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'MyClass';
+    Error.captureStackTrace(this, this.constructor);
+  }
+
+  thisThrows() {
+    throw new Error('thisThrows');
+  }
+}
+
+function a() {
+  const e =  new MyClass('new test');
+  console.log(e.stack);
+  e.thisThrows();
+}
+
+function b() {
+  a();
+}
+
+function c() {
+  b();
+}
+
+setTimeout(() => {
+  try {
+    c();
+  } catch(e) {
+    console.log(e.stack);
+    console.error(e);
+  }
+}, 0);
+
+  </script>
+</head>
+<body>
+<h1>Hello World</h1>
+</body>
+</html>

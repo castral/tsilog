@@ -1,16 +1,21 @@
+import type { MappingFeature } from '../mapper/mapping-config.support.ts';
 import type { StringFeature } from '../support/string/string-config.support.ts';
 import type { ConsoleFeature } from '../transporter/console.transporter.ts';
 import type { UserConfig } from './tsilog.config.ts';
 
 export enum BuiltinFeature {
   Console = 'console',
-  Strings = 'strings',
+  String = 'string',
+  Mapping = 'mapping',
+  Unknown = '',
 }
 
-// TODO: Use this to make `featureGet<T>()` safe
+// TODO: Use this to make `featureGet<T>()`, etc. safe
 export interface BuiltinFeatureMap {
   [BuiltinFeature.Console]: ConsoleFeature;
-  [BuiltinFeature.Strings]: StringFeature;
+  [BuiltinFeature.String]: StringFeature;
+  [BuiltinFeature.Mapping]: MappingFeature;
+  [BuiltinFeature.Unknown]: never;
 }
 
 type FeatureKey<T> = T extends object ? keyof T : string;
@@ -36,8 +41,17 @@ export function featureConfigFromConfig<T>
          : undefined;
 }
 
-export function isFeatureEnabled(featureName: BuiltinFeature, config: Pick<UserConfig, 'features'>): boolean | undefined {
-  const feature = config.features?.[featureName];
+export function isFeatureEnabled<T>(config: FeatureConfig<T> | undefined): boolean | undefined;
+export function isFeatureEnabled<T>(config: FeatureConfig<T> | Pick<UserConfig, 'features'> | undefined, featureName: BuiltinFeature = BuiltinFeature.Unknown): boolean | undefined {
+
+  if (config === undefined) {
+    return undefined;
+  }
+
+  const feature = 'features' in config
+                  ? config.features[featureName]
+                  : config;
+
   return typeof feature === 'string'
          ? feature === 'enabled'
          : typeof feature === 'boolean'

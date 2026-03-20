@@ -29,7 +29,7 @@ export const defaultUserConfig: Required<UserConfig> = {
 
   features: {
     [BuiltinFeature.Console]: true,
-    [BuiltinFeature.Strings]: true,
+    [BuiltinFeature.String]: true,
   },
 };
 

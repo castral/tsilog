@@ -1,0 +1,31 @@
+Uncaught MyClass: test
+    <anonymous> http://localhost:63342/tsilog/index.html?_ijt=th58ea3bkj8veh7tq93ls8kj70&_ij_reload=RELOAD_ON_SAVE:15
+index.html:7:5
+
+
+@firebase/app: Error: Not allowed to define cross-origin object as property on [Object] or [Array] XrayWrapper
+    triggerHeartbeat moz-extension://d618dfc5-5417-4474-a5a3-22c4f9754cf2/assets/firebase-997f25e3.js:346
+    Cr moz-extension://d618dfc5-5417-4474-a5a3-22c4f9754cf2/assets/firebase-997f25e3.js:271
+    ef moz-extension://d618dfc5-5417-4474-a5a3-22c4f9754cf2/assets/firebase-997f25e3.js:976
+    <anonymous> moz-extension://d618dfc5-5417-4474-a5a3-22c4f9754cf2/assets/firebase-997f25e3.js:2676
+firebase-997f25e3.js:211:455
+
+
+Uncaught MyClass: new test
+    <anonymous> http://localhost:63342/tsilog/index.html?_ijt=th58ea3bkj8veh7tq93ls8kj70&_ij_reload=RELOAD_ON_SAVE:16
+    setTimeout handler* http://localhost:63342/tsilog/index.html?_ijt=th58ea3bkj8veh7tq93ls8kj70&_ij_reload=RELOAD_ON_SAVE:15
+index.html:7:5
+
+
+a@http://localhost:63342/tsilog/index.html?_ijt=th58ea3bkj8veh7tq93ls8kj70&_ij_reload=RELOAD_ON_SAVE:14:15
+b@http://localhost:63342/tsilog/index.html?_ijt=th58ea3bkj8veh7tq93ls8kj70&_ij_reload=RELOAD_ON_SAVE:22:3
+c@http://localhost:63342/tsilog/index.html?_ijt=th58ea3bkj8veh7tq93ls8kj70&_ij_reload=RELOAD_ON_SAVE:27:3
+@http://localhost:63342/tsilog/index.html?_ijt=th58ea3bkj8veh7tq93ls8kj70&_ij_reload=RELOAD_ON_SAVE:31:3
+setTimeout handler*@http://localhost:63342/tsilog/index.html?_ijt=th58ea3bkj8veh7tq93ls8kj70&_ij_reload=RELOAD_ON_SAVE:30:11
+
+
+#### SpiderMonkey
+baz@filename.js:10:15
+bar@filename.js:6:3
+foo@filename.js:2:3
+@filename.js:13:1

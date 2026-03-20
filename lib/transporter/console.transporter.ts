@@ -18,7 +18,7 @@ export interface ConsoleFeature {
 export const consoleTransporterFactory: MapperFactory<UserConfig, Log[] | Promise<Log[]>, void> =
   (config) => {
     const feature = featureConfigFromConfig<ConsoleFeature>(BuiltinFeature.Console, config);
-    const enabled = feature === undefined ? true : isFeatureEnabled(BuiltinFeature.Console, config) ?? true;
+    const enabled = isFeatureEnabled<ConsoleFeature>(feature) ?? true;
     const consoleImpl: ConsoleImpl = feature?.console ?? globalThis.console;
 
     return (logs) => {

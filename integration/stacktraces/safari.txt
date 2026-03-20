@@ -1,0 +1,57 @@
+[Error] MyClass: new test
+    (anonymous function) (index.html:16)
+
+[Log]  (1) (index.html, line 16)
+MyClass — index.html:7
+(anonymous function) — index.html:15
+
+[Log]  (1) (index.html, line 14)
+MyClass — index.html:7
+a — index.html:14
+b — index.html:22
+c — index.html:27
+(anonymous function) — index.html:32
+
+[Log]  (1) (index.html, line 35)
+thisThrows — index.html:13
+a — index.html:20
+b — index.html:24
+c — index.html:28
+(anonymous function) — index.html:33
+
+[Log]  (1) (index.html, line 15)
+MyClass — index.html:7
+a — index.html:14
+b — index.html:20
+c — index.html:24
+(anonymous function) — index.html:28
+
+[Log] MyClass@file:///Users/castral/workspace/inverted-phase/client/tsilog/integration/index.html:7:10 (index.html, line 14)
+a@file:///Users/castral/workspace/inverted-phase/client/tsilog/integration/index.html:14:26
+eval code@
+eval@[native code]
+b@file:///Users/castral/workspace/inverted-phase/client/tsilog/integration/index.html:22:7
+c@file:///Users/castral/workspace/inverted-phase/client/tsilog/integration/index.html:27:4
+@file:///Users/castral/workspace/inverted-phase/client/tsilog/integration/index.html:32:6
+
+'null' is not an object (evaluating 'x.undef')
+@http://path/to/file.js:48
+dumpException3@http://path/to/file.js:52
+onclick@http://path/to/file.js:82
+[native code]
+
+'null' is not an object (evaluating 'x.undef')
+http://path/to/file.js:48:22
+foo@http://path/to/file.js:52:15
+bar@http://path/to/file.js:108:107
+
+null is not an object (evaluating 'x.undef')
+http://path/to/file.js:47:22
+foo@http://path/to/file.js:52:15
+bar@http://path/to/file.js:108:23
+
+Can't find variable: getExceptionProps
+eval code
+eval@[native code]
+foo@http://path/to/file.js:58:21
+bar@http://path/to/file.js:109:91

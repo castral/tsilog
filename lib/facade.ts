@@ -57,12 +57,20 @@ export function toCode(value: unknown): SeverityCode | undefined {
   return isName(value) ? SeverityMap[value] : undefined;
 }
 
+export function severityMatches(severity: SeverityCode | SeverityName, value: SeverityCode | SeverityName): boolean {
+
+  const input = isCode(severity) ? severity : toCode(severity);
+  const other = isCode(value) ? value : toCode(value);
+
+  return input === other;
+}
+
 export type JSONPrimitive = boolean | number | object | string | null;
 
 export interface Log {
   severity: SeverityCode | SeverityName;
   arguments: unknown[];
-  context?: Map<string, JSONPrimitive>;
+  context?: Record<string, JSONPrimitive>;
 
   toString(): string;
 }

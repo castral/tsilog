@@ -14,7 +14,7 @@ function checkArgs(expect: ExpectStatic, level: SeverityCode | SeverityName | un
     severityLimit: SeverityCode.trace,
     features: {
       [BuiltinFeature.Console]: true,
-      [BuiltinFeature.Strings]: true,
+      [BuiltinFeature.String]: true,
     },
   });
 

@@ -1,0 +1,40 @@
+Error: test
+    at REPL16:1:11
+    at ContextifyScript.runInThisContext (node:vm:137:12)
+    at REPLServer.defaultEval (node:repl:597:22)
+    at bound (node:domain:433:15)
+    at REPLServer.runBound [as eval] (node:domain:444:12)
+    at REPLServer.onLine (node:repl:926:10)
+    at REPLServer.emit (node:events:519:35)
+    at REPLServer.emit (node:domain:489:12)
+    at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+    at [_line] [as _line] (node:internal/readline/interface:887:18)
+
+Error: Average Stack Traces
+    at someAsyncThing (/Users/uhn7899/development/modern-devtools/src/server/routes/index.js:25:8)
+    at router.get (/Users/uhn7899/development/modern-devtools/src/server/routes/index.js:29:8)
+    at Layer.handle [as handle_request] (/Users/uhn7899/development/modern-devtools/node_modules/express/lib/router/layer.js:95:5)
+    at Layer.handle [as handle_request] (/Users/uhn7899/development/modern-devtools/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/Users/uhn7899/development/modern-devtools/node_modules/express/lib/router/index.js:317:13)
+    at next (/Users/uhn7899/development/modern-devtools/node_modules/express/lib/router/index.js:275:10)
+
+Error while processing route: admin.subscriptions/edit The adapter operation was aborted Error
+    at n.i (http://test.com/assets/vendor-160ad2febac0712c4d0db4e856197579.js:62:1375)
+    at n (http://test.com/assets/vendor-160ad2febac0712c4d0db4e856197579.js:62:1600)
+    at u (http://test.com/assets/vendor-160ad2febac0712c4d0db4e856197579.js:62:4777)
+    at i.c.error (http://test.com/assets/vendor-160ad2febac0712c4d0db4e856197579.js:62:8222)
+    at u (http://test.com/assets/vendor-160ad2febac0712c4d0db4e856197579.js:5:17397)
+    at Object.fireWith [as rejectWith] (http://test.com/assets/vendor-160ad2febac0712c4d0db4e856197579.js:5:18168)
+    at r (http://test.com/assets/vendor-160ad2febac0712c4d0db4e856197579.js:6:22154)
+    at XMLHttpRequest.<anonymous> (http://test.com/assets/vendor-160ad2febac0712c4d0db4e856197579.js:6:26964)
+    at XMLHttpRequest.r (http://test.com/assets/vendor-160ad2febac0712c4d0db4e856197579.js:50:30564)
+
+Error: Oops
+    at funcThree (/Users/kennethjimmy/Desktop/asyncStackTraces.js:3:9)
+    at async funcTwo (/Users/kennethjimmy/Desktop/asyncStackTraces.js:8:3)
+    at async funcOne (/Users/kennethjimmy/Desktop/asyncStackTraces.js:13:3)
+    at async init (/Users/kennethjimmy/Desktop/asyncStackTraces.js:18:3)
+
+Error: Oops
+    at funcThree (/Users/kennethjimmy/Desktop/asyncStackTraces.js:3:9)
+    at <anonymous>

@@ -28,14 +28,14 @@ export class Surrogate implements Log {
 
   public readonly severity: SeverityCode | SeverityName;
   public readonly arguments: unknown[];
-  public readonly context: Map<string, JSONPrimitive>;
+  public readonly context: Record<string, JSONPrimitive>;
 
   public constructor(log: Log,
                      public readonly template: string,
                      public readonly placeholder: string = '%@') {
     this.severity = log.severity;
     this.arguments = log.arguments;
-    this.context = new Map(log.context?.entries());
+    this.context = Object.fromEntries(Object.entries(log.context ?? {}));
   }
 
   public deliver(): string[] {

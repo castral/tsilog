@@ -70,7 +70,7 @@ export type JSONPrimitive = boolean | number | object | string | null;
 export interface Log {
   severity: SeverityCode | SeverityName;
   arguments: unknown[];
-  context?: Record<string, JSONPrimitive>;
+  context?: Map<string, JSONPrimitive>;
 
   toString(): string;
 }

@@ -1,18 +1,21 @@
 import type { MappingFeature } from '../mapper/mapping-config.support.ts';
+import type { SecretFeature } from '../mapper/secret.mapper.ts';
 import type { StringFeature } from '../support/string/string-config.support.ts';
 import type { ConsoleFeature } from '../transporter/console.transporter.ts';
 import type { UserConfig } from './tsilog.config.ts';
 
 export enum BuiltinFeature {
   Console = 'console',
-  String = 'string',
   Mapping = 'mapping',
+  Secret = 'secret',
+  String = 'string',
   Unknown = '',
 }
 
 // TODO: Use this to make `featureGet<T>()`, etc. safe
 export interface BuiltinFeatureMap {
   [BuiltinFeature.Console]: ConsoleFeature;
+  [BuiltinFeature.Secret]: SecretFeature;
   [BuiltinFeature.String]: StringFeature;
   [BuiltinFeature.Mapping]: MappingFeature;
   [BuiltinFeature.Unknown]: never;
@@ -41,7 +44,6 @@ export function featureConfigFromConfig<T>
          : undefined;
 }
 
-export function isFeatureEnabled<T>(config: FeatureConfig<T> | undefined): boolean | undefined;
 export function isFeatureEnabled<T>(config: FeatureConfig<T> | Pick<UserConfig, 'features'> | undefined, featureName: BuiltinFeature = BuiltinFeature.Unknown): boolean | undefined {
 
   if (config === undefined) {

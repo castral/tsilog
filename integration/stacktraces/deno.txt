@@ -1,0 +1,20 @@
+MyClass: new test
+    at a (<anonymous>:12:13)
+    at b (<anonymous>:17:3)
+    at c (<anonymous>:20:3)
+    at <anonymous>:24:5
+    at callback (ext:deno_web/02_timers.js:42:7)
+Error: thisThrows
+    at MyClass.thisThrows (<anonymous>:8:11)
+    at a (<anonymous>:14:5)
+    at b (<anonymous>:17:3)
+    at c (<anonymous>:20:3)
+    at <anonymous>:24:5
+    at callback (ext:deno_web/02_timers.js:42:7)
+Error: thisThrows
+    at MyClass.thisThrows (<anonymous>:8:11)
+    at a (<anonymous>:14:5)
+    at b (<anonymous>:17:3)
+    at c (<anonymous>:20:3)
+    at <anonymous>:24:5
+    at callback (ext:deno_web/02_timers.js:42:7)

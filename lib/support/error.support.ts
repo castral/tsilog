@@ -1,4 +1,6 @@
 /* eslint-disable regexp/no-super-linear-backtracking,regexp/strict */
+import type { EnvironmentMap } from './env.support.ts';
+
 export function isError(value: unknown): value is Error {
   return value instanceof Error
     || (
@@ -15,28 +17,46 @@ export function isError(value: unknown): value is Error {
     );
 }
 
-export class Frame {
-  public readonly fileName?: string;
-  public readonly fileExt?: string;
-  public readonly dirName?: string;
-  public readonly srcPos?: [line: number, column: number];
-  public readonly funcName?: string;
+enum FrameFormat {
+  Unknown,
+  JavaScriptCore,
+  SpiderMonkey,
+  V8,
+}
 
-  constructor(public readonly original: string, public readonly index: number) {}
+export class Frame {
+  // TODO: JSC is missing support for `eval@`, `eval@[native code]`, `[native code]`, etc
+  private static javascriptCore = /^\s*((.*?)(?:\s—\s|@|\s\())?(.*?)(?:, line (\d+)|:(\d+)(?::(\d+))?)/gim; // safari
+
+  private static spiderMonkey = /^\s*(.*?)[\s@]?([^@\s]*?)(?:\sline\s(\d+)\s>\seval)?:(\d+)(?::(\d+))?$/gim; // firefox
+
+  private static v8 = /^\s+at\s([^(:\n]+)\(?([^)]*?)((:\d+){,2})\)?$/gim; // bun, chrome, deno, node
+
+  public readonly dirName?: string;
+  public readonly fileExt?: string;
+  public readonly fileName?: string;
+  public readonly location?: string;
+  public readonly message?: string;
+  public readonly srcPos?: [line: number, column: number];
+  public readonly symbol?: string;
+
+  constructor(public readonly original: string,
+              public readonly index: number,
+              public readonly format: FrameFormat = FrameFormat.V8) {}
 }
 
 export class StackTrace {
-  private static nodeTrace = /^\s+at\s([^(:\n]+)\(?([^)]*?)((:\d+){,2})\)?$/gim;
-  private static safariTrace = /(.*?)(?:\s—\s|\)\s\()(.+?)(?::|,\sline\s)(\d+)\)?$/gim;
   private cursor = 0;
   private readonly frames: Frame[];
 
-  constructor(public readonly original: string) {
+  constructor(env: EnvironmentMap, public readonly original: string) {
+    // TODO: Detect and support correct frame format
     this.frames = original.split('\n').map((line, index) => new Frame(line, index));
   }
 }
 
 export interface TsilogErrorOptions {
+  env: EnvironmentMap;
   message: string;
   wrapped: Error;
   cause?: TsilogError;
@@ -67,7 +87,7 @@ export class TsilogError extends Error {
     this.stackTrace = options.stack instanceof StackTrace
                       ? options.stack
                       : typeof options.stack === 'string'
-                        ? new StackTrace(options.stack)
+                        ? new StackTrace(options.env, options.stack)
                         : undefined;
 
     Object.defineProperty(this, TsilogErrorKey, {

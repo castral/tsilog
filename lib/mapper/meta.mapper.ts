@@ -1,4 +1,4 @@
-import type { UserConfig } from '../configuration/tsilog.config.ts';
+import type { TsilogConfig } from '../configuration/tsilog.config.ts';
 import type { MapperFactory } from './mapper.ts';
 
 import {
@@ -7,9 +7,14 @@ import {
   isFeatureEnabled,
 } from '../configuration/feature.config.ts';
 import { type Log, severityMatches, SeverityName } from '../facade.ts';
-import { type MappingFeature, MetaKey, type MetaMap } from './mapping-config.support.ts';
+import { type MappingFeature } from './mapping-config.support.ts';
 
-export const metaMapperFactory: MapperFactory<UserConfig, Log[], Log[]> =
+export enum MetaKey {
+  Time = 'time',
+  Stack = 'stack',
+}
+
+export const metaMapperFactory: MapperFactory<Omit<TsilogConfig, 'flume'>, Log[], Log[]> =
   (config) => {
 
     const mappingConfig = featureConfigFromConfig<MappingFeature>(
@@ -28,11 +33,11 @@ export const metaMapperFactory: MapperFactory<UserConfig, Log[], Log[]> =
            ? captureStackSeverity
            : severityMatches(log.severity, captureStackSeverity));
 
-        if (log.context === undefined) {
-          log.context = {
-            [MetaKey.Time]: Date.now(),
-            [MetaKey.Stack]: captureStack(captureStackEnabled) ?? null,
-          } satisfies MetaMap;
+        if (mappingEnabled) {
+          log.context ??= new Map();
+
+          log.context.set(MetaKey.Time, Date.now());
+          log.context.set(MetaKey.Stack, captureStack(captureStackEnabled) ?? null);
         }
 
         return log;

@@ -6,7 +6,11 @@ import { type Log, SeverityName } from '../facade.ts';
 import { entityMapperFactory } from '../mapper/entity.mapper.ts';
 import { chain, type Mapper } from '../mapper/mapper.ts';
 import { tsilog } from '../tsilog.ts';
-import { BuiltinFeature, featureConfigFromConfig, isFeatureEnabled } from './feature.config.ts';
+import {
+  BuiltinFeature,
+  featureConfigFromConfig,
+  isFeatureEnabled,
+} from './feature.config.ts';
 import { configureConsole } from './premade.config.ts';
 import { createSubTsilogConfig, createTsilogConfig } from './tsilog.config.ts';
 
@@ -25,7 +29,7 @@ describe('configuration', () => {
     });
 
     const myFlume = chain(
-      entityMapperFactory(userConfig),
+      entityMapperFactory(configureConsole(userConfig)),
       mapper,
     );
 
@@ -73,7 +77,7 @@ describe('configuration', () => {
       },
     });
 
-    const consoleEnabled = isFeatureEnabled(BuiltinFeature.Console, config);
+    const consoleEnabled = isFeatureEnabled(config, BuiltinFeature.Console);
     const consoleConfig = featureConfigFromConfig<ConsoleFeature>(BuiltinFeature.Console, config);
 
     expect(consoleEnabled).toBe(false);
@@ -89,7 +93,7 @@ describe('configuration', () => {
       },
     });
 
-    const consoleEnabled = isFeatureEnabled(BuiltinFeature.Console, config);
+    const consoleEnabled = isFeatureEnabled(config, BuiltinFeature.Console);
     const consoleConfig = featureConfigFromConfig<ConsoleFeature>(BuiltinFeature.Console, config);
 
     expect(consoleEnabled).toBe(false);
@@ -105,7 +109,7 @@ describe('configuration', () => {
       },
     });
 
-    const consoleEnabled = isFeatureEnabled(BuiltinFeature.Console, config);
+    const consoleEnabled = isFeatureEnabled(config, BuiltinFeature.Console);
     const consoleConfig = featureConfigFromConfig<ConsoleFeature>(BuiltinFeature.Console, config);
 
     expect(consoleEnabled).toBe(true);
@@ -123,7 +127,7 @@ describe('configuration', () => {
       },
     });
 
-    const consoleEnabled = isFeatureEnabled(BuiltinFeature.Console, config);
+    const consoleEnabled = isFeatureEnabled(config, BuiltinFeature.Console);
     const consoleConfig = featureConfigFromConfig<ConsoleFeature>(BuiltinFeature.Console, config);
 
     expect(consoleEnabled).toBe(true);
@@ -143,7 +147,7 @@ describe('configuration', () => {
       },
     });
 
-    const consoleEnabled = isFeatureEnabled(BuiltinFeature.Console, config);
+    const consoleEnabled = isFeatureEnabled(config, BuiltinFeature.Console);
     const consoleConfig = featureConfigFromConfig<ConsoleFeature>(BuiltinFeature.Console, config);
 
     expect(consoleEnabled).toBe(false);

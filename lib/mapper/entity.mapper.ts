@@ -15,10 +15,10 @@ export const entityMapperFactory: MapperFactory<Omit<TsilogConfig, 'env' | 'flum
                                                       : config.defaultSeverity;
 
       // TODO: Figure out if we're always returning a single Log value and if there is any
-      // merit to an array here
+      //  merit to an array here
       return [
         {
-          arguments: args,
+          arguments: globalThis.structuredClone(args),
           severity,
 
           toString: () => {

@@ -28,9 +28,9 @@ export default defineConfig(async ({ mode }) => {
       emptyOutDir: mode === 'production',
       minify: mode === 'production' ? 'oxc' : false,
       lib: {
-        entry: './lib/index.ts',
+        entry: './lib/tsilog.ts',
         formats: ['es'],
-        fileName: 'index',
+        fileName: 'tsilog',
       },
       rolldownOptions: {
         output: {

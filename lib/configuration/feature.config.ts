@@ -1,66 +1,34 @@
-import type { MappingFeature } from '../mapper/mapping-config.support.ts';
-import type { SecretFeature } from '../mapper/secret.mapper.ts';
-import type { StringFeature } from '../support/string/string-config.support.ts';
-import type { ConsoleFeature } from '../transporter/console.transporter.ts';
-import type { UserConfig } from './tsilog.config.ts';
+import type { MapperFeature } from '../mapper/mapper-feature.config.ts';
 
-export enum BuiltinFeature {
-  Console = 'console',
-  Mapping = 'mapping',
-  Secret = 'secret',
-  String = 'string',
-  Unknown = '',
+import { type SeverityName } from '../facade.ts';
+
+export interface FeatureEnabled {
+  enabled?: boolean;
 }
 
-// TODO: Use this to make `featureGet<T>()`, etc. safe
-export interface BuiltinFeatureMap {
-  [BuiltinFeature.Console]: ConsoleFeature;
-  [BuiltinFeature.Secret]: SecretFeature;
-  [BuiltinFeature.String]: StringFeature;
-  [BuiltinFeature.Mapping]: MappingFeature;
-  [BuiltinFeature.Unknown]: never;
+export type ConsoleImpl = Record<SeverityName, (...args: unknown[]) => void>;
+
+export interface ConsoleFeature extends FeatureEnabled {
+  implementation?: ConsoleImpl;
 }
 
-type FeatureKey<T> = T extends object ? keyof T : string;
-type FeatureValue<T> = T extends object ? T[keyof T] : T;
+export interface StringFeature extends FeatureEnabled {
+  /**
+   * Placeholder should be two characters, the opener and the closer. An identifier may be
+   * placed in between the two placeholder characters.
+   */
+  placeholder?: string;
 
-export type FeatureEnabled = 'disabled' | 'enabled' | boolean;
-
-export type FeatureConfig<T = unknown> = {
-  enabled?: FeatureEnabled;
-} & Record<FeatureKey<T>, FeatureValue<T>>;
-
-export type Feature<T> = FeatureConfig<T> | FeatureEnabled;
-
-export type FeatureSettings<T = unknown> = Record<BuiltinFeature, Feature<T>>;
-
-export function featureConfigFromConfig<T>
-(featureName: BuiltinFeature,
- config: Pick<UserConfig, 'features'>): FeatureConfig<T> | undefined {
-
-  const feature = config.features?.[featureName];
-  return typeof feature === 'object'
-         ? feature as FeatureConfig<T>
-         : undefined;
+  /**
+   * The idSeparator should be a single character. Separates the placeholder identifier
+   * which may be a number or a string matching the identifier pattern
+   * /[a-z_][a-z0-9_-]*\/i from the optional formatting parameters.
+   */
+  idSeparator?: string;
 }
 
-export function isFeatureEnabled<T>(config: FeatureConfig<T> | Pick<UserConfig, 'features'> | undefined, featureName: BuiltinFeature = BuiltinFeature.Unknown): boolean | undefined {
-
-  if (config === undefined) {
-    return undefined;
-  }
-
-  const feature = 'features' in config
-                  ? config.features[featureName]
-                  : config;
-
-  return typeof feature === 'string'
-         ? feature === 'enabled'
-         : typeof feature === 'boolean'
-           ? feature
-           : typeof feature === 'object' && 'enabled' in feature
-             ? typeof feature.enabled === 'string'
-               ? feature.enabled === 'enabled'
-               : feature.enabled
-             : undefined;
+export interface BuiltinFeatures {
+  console: ConsoleFeature;
+  mapper: MapperFeature;
+  string: StringFeature;
 }

@@ -2,11 +2,10 @@ import { SeverityCode, type SeverityName } from '../facade.ts';
 import { templateFormatterFactory } from '../formatter/template.formatter.ts';
 import { entityMapperFactory } from '../mapper/entity.mapper.ts';
 import { chain, type Mapper } from '../mapper/mapper.ts';
-import { metaMapperFactory } from '../mapper/meta.mapper.ts';
 import { bufferReporterFactory } from '../reporter/buffer.reporter.ts';
 import { type Environment, EnvironmentMap } from '../support/env.support.ts';
 import { consoleTransporterFactory } from '../transporter/console.transporter.ts';
-import { BuiltinFeature, type FeatureSettings } from './feature.config.ts';
+import { type BuiltinFeatures } from './feature.config.ts';
 
 const isConfigKey = Symbol('tsilog.isConfig');
 
@@ -17,7 +16,7 @@ export interface UserConfig {
   severityLimit?: SeverityCode | SeverityName;
   defaultSeverity?: SeverityCode | SeverityName;
 
-  features?: Partial<FeatureSettings>;
+  features?: BuiltinFeatures;
 }
 
 // This is the effective default configuration fallback for all configurations
@@ -28,8 +27,15 @@ export const defaultUserConfig: Required<UserConfig> = {
   defaultSeverity: SeverityCode.info,
 
   features: {
-    [BuiltinFeature.Console]: true,
-    [BuiltinFeature.String]: true,
+    console: {
+      enabled: true,
+    },
+    mapper: {
+      enabled: true,
+    },
+    string: {
+      enabled: true,
+    },
   },
 };
 
@@ -62,7 +68,6 @@ export function createTsilogConfig(
 
     flume: userFlume?.flume ?? chain(
       entityMapperFactory(tsilogConfig),
-      metaMapperFactory(tsilogConfig),
       templateFormatterFactory(tsilogConfig),
       bufferReporterFactory(tsilogConfig),
       consoleTransporterFactory(tsilogConfig),

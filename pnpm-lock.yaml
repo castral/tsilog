@@ -22,6 +22,12 @@ importers:
       '@castral/ts-enum':
         specifier: 1.1.0
         version: 1.1.0
+      builtin-type:
+        specifier: 0.0.4
+        version: 0.0.4
+      neotraverse:
+        specifier: 0.6.18
+        version: 0.6.18
     devDependencies:
       '@microsoft/api-extractor':
         specifier: 7.57.7
@@ -728,6 +734,10 @@ packages:
     resolution: {integrity: sha512-bkXY9WsVpY7CvMhKSR6pZilZu9Ln5WDrKVBUXf2S443etkmEO4V58heTecXcUIsNsi4Rx8JUO4NfX1IcQl4deg==}
     engines: {node: '>=18.20'}
 
+  builtin-type@0.0.4:
+    resolution: {integrity: sha512-kQ5LmvDw/B/Iv4aBnK/M0WMhUW+UR5kt3xx9tC+a3xF4v+BT0fAE/tmisRKja4M3WFQDaGPHXH7I+2qgfgv04Q==}
+    engines: {node: '>= 22'}
+
   callsites@3.1.0:
     resolution: {integrity: sha512-P8BjAsXvZS+VIDUI11hHCQEv74YT67YUi5JJFNWIqL235sBmjX4+qx9Muvls5ivyNENctx46xQLQ3aTuE7ssaQ==}
     engines: {node: '>=6'}
@@ -1341,6 +1351,10 @@ packages:
   natural-orderby@5.0.0:
     resolution: {integrity: sha512-kKHJhxwpR/Okycz4HhQKKlhWe4ASEfPgkSWNmKFHd7+ezuQlxkA5cM3+XkBPvm1gmHen3w53qsYAv+8GwRrBlg==}
     engines: {node: '>=18'}
+
+  neotraverse@0.6.18:
+    resolution: {integrity: sha512-Z4SmBUweYa09+o6pG+eASabEpP6QkQ70yHj351pQoEXIs8uHbaU2DWVmzBANKgflPa47A50PtB2+NgRpQvr7vA==}
+    engines: {node: '>= 10'}
 
   node-releases@2.0.36:
     resolution: {integrity: sha512-TdC8FSgHz8Mwtw9g5L4gR/Sh9XhSP/0DEkQxfEFXOpiul5IiHgHan2VhYYb6agDSfp4KuvltmGApc8HMgUrIkA==}
@@ -2423,6 +2437,8 @@ snapshots:
 
   builtin-modules@5.0.0: {}
 
+  builtin-type@0.0.4: {}
+
   callsites@3.1.0: {}
 
   caniuse-lite@1.0.30001780: {}
@@ -2991,6 +3007,8 @@ snapshots:
   natural-compare@1.4.0: {}
 
   natural-orderby@5.0.0: {}
+
+  neotraverse@0.6.18: {}
 
   node-releases@2.0.36: {}
 

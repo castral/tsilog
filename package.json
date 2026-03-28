@@ -31,15 +31,15 @@
   "type": "module",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "import": "./dist/tsilog.js",
+      "types": "./dist/tsilog.d.ts"
     }
   },
   "files": [
-    "./dist/index.js",
-    "./dist/index.js.map",
-    "./dist/index.d.ts",
-    "./dist/index.d.ts.map"
+    "./dist/tsilog.js",
+    "./dist/tsilog.js.map",
+    "./dist/tsilog.d.ts",
+    "./dist/tsilog.d.ts.map"
   ],
   "scripts": {
     "chk:coverage": "vitest --run --coverage.enabled=true --pool=threads",
@@ -57,7 +57,9 @@
     "tsi:verify": "pnpm run tsi:build && pnpm run \"/^chk:.+/\""
   },
   "dependencies": {
-    "@castral/ts-enum": "1.1.0"
+    "@castral/ts-enum": "1.1.0",
+    "builtin-type": "0.0.4",
+    "neotraverse": "0.6.18"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "7.57.7",

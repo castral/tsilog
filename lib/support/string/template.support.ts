@@ -27,21 +27,21 @@ export class Surrogate implements Log {
   private readonly attributes = new Map<AttributeName, Attribute[]>();
 
   public readonly severity: SeverityCode | SeverityName;
-  public readonly arguments: unknown[];
+  public readonly entities: unknown[];
   public readonly context: Map<string, JSONPrimitive>;
 
   public constructor(log: Log,
                      public readonly template: string,
                      public readonly placeholder: string = '%@') {
     this.severity = log.severity;
-    this.arguments = log.arguments;
+    this.entities = log.entities;
     this.context = new Map(log.context?.entries());
   }
 
   public deliver(): string[] {
-    this.arguments.unshift(this.severity);
+    this.entities.unshift(this.severity);
 
-    return this.arguments.map((arg) => {
+    return this.entities.map((arg) => {
       return typeof arg === 'string' ? arg : JSON.stringify(arg);
     });
   }

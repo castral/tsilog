@@ -1,25 +1,14 @@
+import type { ConsoleImpl } from '../configuration/feature.config.ts';
 import type { MapperFactory } from '../mapper/mapper.ts';
 
-import {
-  BuiltinFeature,
-  featureConfigFromConfig,
-  isFeatureEnabled,
-} from '../configuration/feature.config.ts';
-import { type UserConfig } from '../configuration/tsilog.config.ts';
-import { type Log, isCode, SeverityName, toName } from '../facade.ts';
+import { type TsilogConfig } from '../configuration/tsilog.config.ts';
+import { type Log, isCode, toName } from '../facade.ts';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ConsoleImpl = Record<SeverityName, (...args: any[]) => void>;
-
-export interface ConsoleFeature {
-  console?: ConsoleImpl;
-}
-
-export const consoleTransporterFactory: MapperFactory<UserConfig, Log[] | Promise<Log[]>, void> =
+export const consoleTransporterFactory: MapperFactory<Omit<TsilogConfig, 'flume'>, Log[] | Promise<Log[]>, void> =
   (config) => {
-    const feature = featureConfigFromConfig<ConsoleFeature>(BuiltinFeature.Console, config);
-    const enabled = isFeatureEnabled<ConsoleFeature>(feature) ?? true;
-    const consoleImpl: ConsoleImpl = feature?.console ?? globalThis.console;
+    const feature = config.features.console;
+    const enabled = feature.enabled ?? true;
+    const consoleImpl: ConsoleImpl = feature.implementation ?? globalThis.console;
 
     return (logs) => {
       if (!enabled) {
@@ -31,7 +20,7 @@ export const consoleTransporterFactory: MapperFactory<UserConfig, Log[] | Promis
         output.map((log) => {
           consoleImpl[isCode(log.severity)
                       ? toName(log.severity)
-                      : log.severity](...log.arguments);
+                      : log.severity](...log.entities);
         });
       };
 

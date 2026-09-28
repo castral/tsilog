@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Traverse } from 'neotraverse/modern';
 
 import type { TsilogConfig } from '../configuration/tsilog.config.ts';
@@ -60,17 +60,18 @@ export const entityMapperFactory: MapperFactory<Omit<TsilogConfig, 'flume'>, unk
           const key = String(ctx.key);
           let mask: string | undefined;
 
-          if (ctx.key !== undefined &&
-            (keyMatcher.test(key) || additionalMatcher?.test(key))) {
-            mask = maskValueCallback?.(
-              ctx.parent?.node,
-              ctx.key,
-              ctx.node,
-            ) ?? defaultMaskValue;
-          }
-
-          ctx.update(new EntityRepresentation(ctx.node, mask));
+          // if (ctx.key !== undefined &&
+          //   (keyMatcher.test(key) || additionalMatcher?.test(key))) {
+          //   mask = maskValueCallback?.(
+          //     ctx.parent?.node,
+          //     ctx.key,
+          //     ctx.node,
+          //   ) ?? defaultMaskValue;
+          // }
+          console.log(ctx);
+          return new EntityRepresentation(ctx.node, mask);
         });
+
         context ??= new Map();
         context.set(MetaKey.Time, Date.now());
 

@@ -1,7 +1,5 @@
 import { afterEach, describe, it, vi } from 'vitest';
 
-import type { ConsoleFeature } from '../transporter/console.transporter.ts';
-
 import { type Log, SeverityName } from '../facade.ts';
 import { entityMapperFactory } from '../mapper/entity.mapper.ts';
 import { chain, type Mapper } from '../mapper/mapper.ts';
